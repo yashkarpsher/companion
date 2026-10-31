@@ -1,5 +1,12 @@
 param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
 $ErrorActionPreference = 'Stop'
+$gameAsset = Join-Path $PSScriptRoot 'Assets\MisterSvin.zip'
+if (!(Test-Path -LiteralPath $gameAsset)) {
+ $parts = @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'Assets') -Filter 'MisterSvin.zip.part*' | Sort-Object Name)
+ if ($parts.Count -eq 0) { throw 'Missing embedded game archive' }
+ $stream = [IO.File]::Create($gameAsset)
+ try { foreach ($part in $parts) { $inputStream = [IO.File]::OpenRead($part.FullName); try { $inputStream.CopyTo($stream) } finally { $inputStream.Dispose() } } } finally { $stream.Dispose() }
+}
 $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
 $compiler = Join-Path $framework 'csc.exe'
 $references = @('PresentationFramework','PresentationCore','WindowsBase') | ForEach-Object { '/reference:' + (Join-Path $framework ('WPF\' + $_ + '.dll')) }

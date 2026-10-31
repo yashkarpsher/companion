@@ -33,6 +33,10 @@ jobs:
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git fetch --depth=1 origin "$GITHUB_SHA"
           git checkout --detach FETCH_HEAD
+      - name: Assemble the release archive
+        shell: bash
+        working-directory: repository/dist/0.16.2
+        run: cat Majestic-Companion-0.16.2.zip.part* > Majestic-Companion-0.16.2.zip
       - name: Verify the archive checksum
         shell: bash
         working-directory: repository/dist/0.16.2
@@ -51,6 +55,6 @@ jobs:
             "dist/${VERSION}/Majestic-Companion-${VERSION}.zip.sha256" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "Companion ${VERSION}" \
+            --title "${VERSION}" \
             --notes-file "docs/release-notes/v${VERSION}.md" \
             --latest
