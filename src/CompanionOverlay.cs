@@ -11,11 +11,11 @@ public sealed class CompanionHotkey {
  public uint Modifiers;public int VirtualKey;
  public override string ToString(){return ((Modifiers&2)!=0?"Ctrl+":"")+((Modifiers&1)!=0?"Alt+":"")+((Modifiers&4)!=0?"Shift+":"")+KeyInterop.KeyFromVirtualKey(VirtualKey).ToString().Replace("D0","0").Replace("D1","1").Replace("D2","2").Replace("D3","3").Replace("D4","4").Replace("D5","5").Replace("D6","6").Replace("D7","7").Replace("D8","8").Replace("D9","9");}
  public static CompanionHotkey Parse(string text){
-  if(String.IsNullOrWhiteSpace(text))throw new ArgumentException("Нажми сочетание Ctrl или Alt с буквой, цифрой или F1–F24.");
+  if(String.IsNullOrWhiteSpace(text))throw new ArgumentException("Нажми сочетание Ctrl или Alt с буквой, цифрой или F1-F24.");
   var parts=text.Split('+');uint modifiers=0;for(int i=0;i<parts.Length-1;i++){switch(parts[i].Trim().ToLowerInvariant()){case "ctrl":case "control":modifiers|=2;break;case "alt":modifiers|=1;break;case "shift":modifiers|=4;break;default:throw new ArgumentException("Допустимы Ctrl, Alt и Shift.");}}
   string keyName=parts.Last().Trim();if(keyName.Length==1&&Char.IsDigit(keyName[0]))keyName="D"+keyName;
-  Key key;if(!Enum.TryParse<Key>(keyName,true,out key))throw new ArgumentException("Выбери букву, цифру или F1–F24.");int code=KeyInterop.VirtualKeyFromKey(key);
-  if((modifiers&3)==0||!((code>=65&&code<=90)||(code>=48&&code<=57)||(code>=112&&code<=135)))throw new ArgumentException("Нужен Ctrl или Alt + буква, цифра или F1–F24.");
+  Key key;if(!Enum.TryParse<Key>(keyName,true,out key))throw new ArgumentException("Выбери букву, цифру или F1-F24.");int code=KeyInterop.VirtualKeyFromKey(key);
+  if((modifiers&3)==0||!((code>=65&&code<=90)||(code>=48&&code<=57)||(code>=112&&code<=135)))throw new ArgumentException("Нужен Ctrl или Alt + буква, цифра или F1-F24.");
   return new CompanionHotkey{Modifiers=modifiers,VirtualKey=code};
  }
  public static CompanionHotkey OrDefault(string text,string fallback){try{return Parse(text);}catch(ArgumentException){return Parse(fallback);}}
@@ -75,11 +75,11 @@ public partial class Companion {
    throw new ArgumentException("Сочетание занято Windows или другой программой. Предыдущие клавиши восстановлены; выбери другое сочетание.");
   }
   showHotkeyRegistered=inputHotkeyRegistered=true;showBinding=nextShow;inputBinding=nextInput;
-  data.ShowHotkey=nextShow.ToString();data.InputHotkey=nextInput.ToString();Save();UpdateOverlayHelp();Say("Клавиши сохранены: "+ShowBinding+" — окно; "+InputBinding+" — управление мышью.");
+  data.ShowHotkey=nextShow.ToString();data.InputHotkey=nextInput.ToString();Save();UpdateOverlayHelp();Say("Клавиши сохранены: "+ShowBinding+" - окно; "+InputBinding+" - управление мышью.");
  }
- void UpdateOverlayHelp(){if(tray!=null)tray.Text="Companion · "+ShowBinding;if(feedback!=null)feedback.Text="v"+GetType().Assembly.GetName().Version.ToString(3)+" · "+(gameInputLocked?"Режим игры · "+InputBinding+" — вернуть управление":"Готов к работе · "+InputBinding+" — в игру · "+ShowBinding+" — окно");}
+ void UpdateOverlayHelp(){if(tray!=null)tray.Text="Companion · "+ShowBinding;if(feedback!=null)feedback.Text="v"+GetType().Assembly.GetName().Version.ToString(3)+" · "+(gameInputLocked?"Режим игры · "+InputBinding+" - вернуть управление":"Готов к работе · "+InputBinding+" - в игру · "+ShowBinding+" - окно");}
  TextBox HotkeyEditor(string title,string value){
-  var editor=Input(title,value);editor.IsReadOnly=true;editor.ToolTip="Нажми Ctrl или Alt с буквой, цифрой либо F1–F24. Изменения применяются кнопкой сохранения.";
+  var editor=Input(title,value);editor.IsReadOnly=true;editor.ToolTip="Нажми Ctrl или Alt с буквой, цифрой либо F1-F24. Изменения применяются кнопкой сохранения.";
   editor.GotKeyboardFocus+=(s,e)=>{if(source==null)return;if(gameInputLocked)SetGameInput(false);UnregisterHotKey(source.Handle,17);UnregisterHotKey(source.Handle,18);UnregisterHotKey(source.Handle,19);showHotkeyRegistered=inputHotkeyRegistered=false;};
   editor.LostKeyboardFocus+=(s,e)=>{if(source==null)return;UnregisterHotKey(source.Handle,19);RegisterHotKey(source.Handle,19,0x4000|QuickBinding.Modifiers,(uint)QuickBinding.VirtualKey);showHotkeyRegistered=RegisterHotKey(source.Handle,17,0x4000|ShowBinding.Modifiers,(uint)ShowBinding.VirtualKey);inputHotkeyRegistered=RegisterHotKey(source.Handle,18,0x4000|InputBinding.Modifiers,(uint)InputBinding.VirtualKey);};
   editor.PreviewKeyDown+=(s,e)=>{if(e.Key==Key.Tab)return;e.Handled=true;if((Keyboard.Modifiers&ModifierKeys.Windows)!=0)return;Key key=e.Key==Key.System?e.SystemKey:e.Key;uint mods=0;if((Keyboard.Modifiers&ModifierKeys.Control)!=0)mods|=2;if((Keyboard.Modifiers&ModifierKeys.Alt)!=0)mods|=1;if((Keyboard.Modifiers&ModifierKeys.Shift)!=0)mods|=4;try{var candidate=new CompanionHotkey{Modifiers=mods,VirtualKey=KeyInterop.VirtualKeyFromKey(key)};editor.Text=CompanionHotkey.Parse(candidate.ToString()).ToString();}catch(ArgumentException){}};return editor;

@@ -24,7 +24,7 @@ public partial class Companion {
   sectionOrderToggle=Btn("↔ Изменить порядок",()=>SetSectionReorder(!sectionReorderEditing));sectionOrderToggle.FontSize=11;
   sectionOrderReset=Btn("Сбросить порядок",()=>{CancelSectionPointer();data.SectionOrder=NormalizeSectionOrder(null);ApplySectionOrder();Save();});sectionOrderReset.FontSize=11;sectionOrderReset.Visibility=Visibility.Collapsed;
   controls.Children.Add(sectionOrderToggle);controls.Children.Add(sectionOrderReset);var about=Btn("О программе",OpenAbout);about.FontSize=11;controls.Children.Add(about);var creator=Btn("О создателе",OpenCreator);creator.FontSize=11;controls.Children.Add(creator);hero.Children.Add(controls);
-  sectionOrderHint=Text("Перетащи плитку на другую — они поменяются местами. Alt + стрелки — обмен с клавиатуры.",11,"Muted");sectionOrderHint.Visibility=Visibility.Collapsed;hero.Children.Add(sectionOrderHint);
+  sectionOrderHint=Text("Перетащи плитку на другую - они поменяются местами. Alt + стрелки - обмен с клавиатуры.",11,"Muted");sectionOrderHint.Visibility=Visibility.Collapsed;hero.Children.Add(sectionOrderHint);
   Deactivated+=(s,e)=>CancelSectionPointer();
  }
  void SetSectionReorder(bool editing){
@@ -47,7 +47,7 @@ public partial class Companion {
  void CancelSectionPointer(){
   var source=sectionReorderSource;sectionReorderSource=null;sectionReorderTarget=null;sectionReorderDragging=false;
   if(source!=null){if(source.IsMouseCaptured)source.ReleaseMouseCapture();source.BeginAnimation(UIElement.OpacityProperty,null);source.Opacity=1;}
-  if(sectionOrderHint!=null)sectionOrderHint.Text="Перетащи плитку на другую — они поменяются местами. Alt + стрелки — обмен с клавиатуры.";
+  if(sectionOrderHint!=null)sectionOrderHint.Text="Перетащи плитку на другую - они поменяются местами. Alt + стрелки - обмен с клавиатуры.";
   UpdateSectionTiles();
  }
  Button SectionAt(Point position){
@@ -63,7 +63,7 @@ public partial class Companion {
    if(sectionReorderSource!=tile)return;if(e.LeftButton!=MouseButtonState.Pressed){CancelSectionPointer();return;}
    Point position=e.GetPosition(sectionTiles);if(!sectionReorderDragging&&!CompanionWindowDrag.PastThreshold(position-sectionReorderStart))return;
    sectionReorderDragging=true;tile.BeginAnimation(UIElement.OpacityProperty,null);tile.Opacity=.65;sectionReorderTarget=SectionAt(position);UpdateSectionTiles();
-   sectionOrderHint.Text=sectionReorderTarget!=null&&sectionReorderTarget!=tile?"Отпусти мышь — эти две плитки поменяются местами.":"Перетащи плитку на нужное место.";e.Handled=true;
+   sectionOrderHint.Text=sectionReorderTarget!=null&&sectionReorderTarget!=tile?"Отпусти мышь - эти две плитки поменяются местами.":"Перетащи плитку на нужное место.";e.Handled=true;
   };
   tile.PreviewMouseLeftButtonUp+=(s,e)=>{
    if(sectionReorderSource!=tile)return;

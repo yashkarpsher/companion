@@ -27,7 +27,7 @@ public partial class Companion {
   gameOrderToggle=Btn("↔ Порядок мини-игр",()=>SetGameReorder(!gameReorderEditing));gameOrderToggle.FontSize=11;
   gameOrderReset=Btn("Сбросить порядок",()=>{CancelGamePointer();data.GameOrder=NormalizeGameOrder(null);ApplyGameOrder();Save();});gameOrderReset.FontSize=11;gameOrderReset.Visibility=Visibility.Collapsed;
   controls.Children.Add(gameOrderToggle);controls.Children.Add(gameOrderReset);hero.Children.Insert(hero.Children.IndexOf(arcadeTiles),controls);
-  gameOrderHint=Text("Перетащи плитку на другую — они поменяются местами. Alt + стрелки — обмен с клавиатуры.",11,"Muted");gameOrderHint.Visibility=Visibility.Collapsed;hero.Children.Insert(hero.Children.IndexOf(arcadeTiles),gameOrderHint);
+  gameOrderHint=Text("Перетащи плитку на другую - они поменяются местами. Alt + стрелки - обмен с клавиатуры.",11,"Muted");gameOrderHint.Visibility=Visibility.Collapsed;hero.Children.Insert(hero.Children.IndexOf(arcadeTiles),gameOrderHint);
   Deactivated+=(s,e)=>CancelGamePointer();
   ApplyGameOrder();
  }
@@ -51,7 +51,7 @@ public partial class Companion {
  void CancelGamePointer(){
   var source=gameReorderSource;gameReorderSource=null;gameReorderTarget=null;gameReorderDragging=false;
   if(source!=null){if(source.IsMouseCaptured)source.ReleaseMouseCapture();source.BeginAnimation(UIElement.OpacityProperty,null);source.Opacity=1;}
-  if(gameOrderHint!=null)gameOrderHint.Text="Перетащи плитку на другую — они поменяются местами. Alt + стрелки — обмен с клавиатуры.";
+  if(gameOrderHint!=null)gameOrderHint.Text="Перетащи плитку на другую - они поменяются местами. Alt + стрелки - обмен с клавиатуры.";
   UpdateGameReorderTiles();
  }
  Button GameAt(Point position){
@@ -70,7 +70,7 @@ public partial class Companion {
    if(gameReorderSource!=tile)return;if(e.LeftButton!=MouseButtonState.Pressed){CancelGamePointer();return;}
    Point position=e.GetPosition(arcadeTiles);if(!gameReorderDragging&&!CompanionWindowDrag.PastThreshold(position-gameReorderStart))return;
    gameReorderDragging=true;tile.BeginAnimation(UIElement.OpacityProperty,null);tile.Opacity=.65;gameReorderTarget=GameAt(position);UpdateGameReorderTiles();
-   gameOrderHint.Text=gameReorderTarget!=null&&gameReorderTarget!=tile?"Отпусти мышь — эти две плитки поменяются местами.":"Перетащи плитку на нужное место.";e.Handled=true;
+   gameOrderHint.Text=gameReorderTarget!=null&&gameReorderTarget!=tile?"Отпусти мышь - эти две плитки поменяются местами.":"Перетащи плитку на нужное место.";e.Handled=true;
   };
   tile.PreviewMouseLeftButtonUp+=(s,e)=>{
    if(gameReorderSource!=tile)return;

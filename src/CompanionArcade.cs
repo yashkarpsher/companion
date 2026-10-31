@@ -70,7 +70,7 @@ public sealed class CompanionArcadeField : FrameworkElement {
    d.DrawRectangle(panel,null,new Rect(0,306,640,14));d.DrawLine(new Pen(line,1),new Point(0,306),new Point(640,306));
    d.DrawEllipse(accent,new Pen(text,1.5),new Point(140,game.Y),12,10);d.DrawEllipse(panel,null,new Point(144,game.Y-2),2,2);d.DrawLine(new Pen(text,3),new Point(129,game.Y+1),new Point(120,game.Y+5));d.DrawLine(new Pen(accent,3),new Point(151,game.Y),new Point(158,game.Y+2));
   }
-  if(!game.Started||game.Over||game.Paused){d.DrawRectangle(new SolidColorBrush(System.Windows.Media.Color.FromArgb(195,9,12,17)),null,new Rect(0,0,640,320));Label(d,game.Over?"ПОПРОБУЕМ ЕЩЁ?":game.Paused?"ПАУЗА":game.Runner?"ТРИ ДОРОЖКИ. ТВОЙ РИТМ.":"ДЕРЖИ ВЫСОТУ.",45,114,game.Runner&&!game.Started?26:30,text);Label(d,game.Over?"Очки: "+game.Score+"   ·   Пробел — заново":game.Paused?"P или «Продолжить» — вернуться":"Пробел или «Играть» — начать",48,163,17,muted);}
+  if(!game.Started||game.Over||game.Paused){d.DrawRectangle(new SolidColorBrush(System.Windows.Media.Color.FromArgb(195,9,12,17)),null,new Rect(0,0,640,320));Label(d,game.Over?"ПОПРОБУЕМ ЕЩЁ?":game.Paused?"ПАУЗА":game.Runner?"ТРИ ДОРОЖКИ. ТВОЙ РИТМ.":"ДЕРЖИ ВЫСОТУ.",45,114,game.Runner&&!game.Started?26:30,text);Label(d,game.Over?"Очки: "+game.Score+"   ·   Пробел - заново":game.Paused?"P или «Продолжить» - вернуться":"Пробел или «Играть» - начать",48,163,17,muted);}
   d.Pop();
  }
 }
@@ -99,7 +99,7 @@ public partial class Companion {
  }
  void SizeArcade(){if(arcadeSurface==null)return;arcadeSurface.Width=Math.Max(1,Math.Min(740,(root.ActualWidth>0?root.ActualWidth:Width)-24));arcadeSurface.Height=Math.Max(1,Math.Min(560,(root.ActualHeight>0?root.ActualHeight:Height)-24));}
  void OpenArcade(bool runner){CloseCardGames();CloseHelp();
-  if(compact)SetCompact(false);if(designing)ShowDesign();if(sectionReorderEditing)SetSectionReorder(false);CloseSectionDialog(false,true);CommitArcadeScore();arcadeTicker.Stop();arcadeClock.Reset();arcadeGame=new CompanionArcadeGame(runner,Environment.TickCount);arcadeField.Game=arcadeGame;arcadeTitle.Text=runner?"Городской забег":"Держи высоту";arcadeHint.Text=runner?"← → / A D — дорожка · Пробел / ↑ — прыжок · P — пауза":"Пробел / ↑ / клик — взмах · P — пауза";
+  if(compact)SetCompact(false);if(designing)ShowDesign();if(sectionReorderEditing)SetSectionReorder(false);CloseSectionDialog(false,true);CommitArcadeScore();arcadeTicker.Stop();arcadeClock.Reset();arcadeGame=new CompanionArcadeGame(runner,Environment.TickCount);arcadeField.Game=arcadeGame;arcadeTitle.Text=runner?"Городской забег":"Держи высоту";arcadeHint.Text=runner?"← → / A D - дорожка · Пробел / ↑ - прыжок · P - пауза":"Пробел / ↑ / клик - взмах · P - пауза";
   arcadeOpen=true;arcadeGeneration++;SizeArcade();arcadeLayer.IsHitTestVisible=true;arcadeLayer.Visibility=Visibility.Visible;arcadeLayer.BeginAnimation(OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(200)));var shift=new TranslateTransform(0,9);arcadeSurface.RenderTransform=shift;shift.BeginAnimation(TranslateTransform.YProperty,new DoubleAnimation(0,TimeSpan.FromMilliseconds(200)){EasingFunction=new CubicEase{EasingMode=EasingMode.EaseOut}});UpdateArcadeUi();arcadeField.Focus();
  }
  void StartArcade(){if(!arcadeOpen||arcadeGame==null)return;CommitArcadeScore();arcadeGame.Start();arcadeGame.Action();arcadeClock.Restart();arcadeTicker.Start();UpdateArcadeUi();arcadeField.Focus();}

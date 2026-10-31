@@ -18,10 +18,10 @@ public partial class Companion {
  bool CompactHeroTab { get { return false; } }
  void BrowserTab(){
   var body=Stack();body.Children.Add(Text("Браузер поверх игры",23));
-  body.Children.Add(Text("Видео, музыка и поиск — в отдельном окне, размер которого выбираешь ты.",13,"Muted"));
+  body.Children.Add(Text("Видео, музыка и поиск - в отдельном окне, размер которого выбираешь ты.",13,"Muted"));
   var card=Stack();card.Children.Add(Text("Стартовая страница",15));
   var google=Btn("Google",()=>{});var yandex=Btn("Яндекс",()=>{});
-  Action refresh=()=>{bool useYandex=data.BrowserHome=="yandex";Resource(google,Control.BackgroundProperty,useYandex?"Field":"AccentFill");Resource(google,Control.ForegroundProperty,useYandex?"Text":"AccentText");Resource(yandex,Control.BackgroundProperty,useYandex?"AccentFill":"Field");Resource(yandex,Control.ForegroundProperty,useYandex?"AccentText":"Text");System.Windows.Automation.AutomationProperties.SetName(google,useYandex?"Google":"Google — выбрано");System.Windows.Automation.AutomationProperties.SetName(yandex,useYandex?"Яндекс — выбрано":"Яндекс");};
+  Action refresh=()=>{bool useYandex=data.BrowserHome=="yandex";Resource(google,Control.BackgroundProperty,useYandex?"Field":"AccentFill");Resource(google,Control.ForegroundProperty,useYandex?"Text":"AccentText");Resource(yandex,Control.BackgroundProperty,useYandex?"AccentFill":"Field");Resource(yandex,Control.ForegroundProperty,useYandex?"AccentText":"Text");System.Windows.Automation.AutomationProperties.SetName(google,useYandex?"Google":"Google - выбрано");System.Windows.Automation.AutomationProperties.SetName(yandex,useYandex?"Яндекс - выбрано":"Яндекс");};
   Action<string> choose=provider=>{data.BrowserHome=provider;Save();if(browserWindow!=null)browserWindow.HomeProvider=provider;refresh();};
   google.Click+=(s,e)=>choose("google");yandex.Click+=(s,e)=>choose("yandex");refresh();
   card.Children.Add(Row(google,yandex));card.Children.Add(Btn("Открыть браузер",()=>OpenBrowser(null),true));
@@ -103,7 +103,7 @@ public class CompanionBrowserWindow : Window {
   var navigationButtons=new StackPanel{Orientation=Orientation.Horizontal};
   back=Button("‹",()=>{if(initialized&&view.CanGoBack)view.GoBack();},"Назад");forward=Button("›",()=>{if(initialized&&view.CanGoForward)view.GoForward();},"Вперёд");
   back.IsEnabled=false;forward.IsEnabled=false;navigationButtons.Children.Add(back);navigationButtons.Children.Add(forward);navigationButtons.Children.Add(Button("↻",()=>{if(initialized)view.Reload();else Initialize();},"Обновить / повторить запуск"));navigationButtons.Children.Add(Button("⌂",()=>Go(HomeUrl(HomeProvider)),"Стартовая страница"));DockPanel.SetDock(navigationButtons,Dock.Left);navigation.Children.Add(navigationButtons);
-  var gameButton=Button("В ИГРУ",()=>{if(RequestGameMode!=null)RequestGameMode();},"Пропускать мышь в игру. Вернуть управление — горячими клавишами из «Дизайна»");gameButton.Width=65;gameButton.FontSize=10;navigationButtons.Children.Add(gameButton);
+  var gameButton=Button("В ИГРУ",()=>{if(RequestGameMode!=null)RequestGameMode();},"Пропускать мышь в игру. Вернуть управление - горячими клавишами из «Дизайна»");gameButton.Width=65;gameButton.FontSize=10;navigationButtons.Children.Add(gameButton);
   var go=Button("→",()=>Go(address.Text),"Перейти");DockPanel.SetDock(go,Dock.Right);navigation.Children.Add(go);
   address=new TextBox{FontSize=13,Padding=new Thickness(8),Margin=new Thickness(4,0,4,0),VerticalContentAlignment=VerticalAlignment.Center,MaxLength=8192};
   address.SetResourceReference(Control.BackgroundProperty,"Field");address.SetResourceReference(Control.ForegroundProperty,"Text");address.SetResourceReference(Control.BorderBrushProperty,"Line");System.Windows.Automation.AutomationProperties.SetName(address,"Адрес или поисковый запрос");
@@ -177,7 +177,7 @@ public class CompanionBrowserWindow : Window {
    core.NavigationStarting+=(s,e)=>{Uri uri;if(!Uri.TryCreate(e.Uri,UriKind.Absolute,out uri)||(uri.Scheme!="http"&&uri.Scheme!="https")){e.Cancel=true;status.Text="Поддерживаются только веб-адреса HTTP и HTTPS.";return;}status.Text="Загрузка…";};
    core.SourceChanged+=(s,e)=>address.Text=core.Source;
    core.HistoryChanged+=(s,e)=>{back.IsEnabled=core.CanGoBack;forward.IsEnabled=core.CanGoForward;};
-   core.NavigationCompleted+=(s,e)=>{status.Text=e.IsSuccess?"ПОВЕРХ ИГРЫ · F11 — РЕЖИМ ПРОСМОТРА · CTRL + L — АДРЕС":"Не удалось открыть страницу: "+e.WebErrorStatus+". Проверь интернет или адрес.";ApplyBackgroundPlayback();};
+   core.NavigationCompleted+=(s,e)=>{status.Text=e.IsSuccess?"ПОВЕРХ ИГРЫ · F11 - РЕЖИМ ПРОСМОТРА · CTRL + L - АДРЕС":"Не удалось открыть страницу: "+e.WebErrorStatus+". Проверь интернет или адрес.";ApplyBackgroundPlayback();};
    core.NewWindowRequested+=(s,e)=>{e.Handled=true;if(e.IsUserInitiated)Dispatcher.BeginInvoke((Action)(()=>Go(e.Uri)));};
    core.ContainsFullScreenElementChanged+=(s,e)=>SetViewMode(core.ContainsFullScreenElement);
    core.ProcessFailed+=(s,e)=>status.Text="Процесс браузера остановлен. Закрой окно браузера и открой его снова.";

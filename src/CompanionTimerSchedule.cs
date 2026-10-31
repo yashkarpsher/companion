@@ -10,7 +10,7 @@ public partial class Companion {
   var hours=Stack();hours.Margin=new Thickness(0,0,6,0);hours.Children.Add(Text("Часы",13,"Muted"));timerHours=Input("Часы","0");PrepareTimerNumberInput(timerHours);hours.Children.Add(timerHours);fields.Children.Add(hours);
   var mins=Stack();mins.Margin=new Thickness(6,0,0,0);mins.Children.Add(Text("Минуты",13,"Muted"));minutes=Input("Минуты","30");PrepareTimerNumberInput(minutes);mins.Children.Add(minutes);Grid.SetColumn(mins,1);fields.Children.Add(mins);form.Children.Add(fields);
   form.Children.Add(Text("Дата",13,"Muted"));timerDate=Input("Дата напоминания · необязательно");timerDate.Tag="ДД.ММ.ГГГГ · необязательно";timerDate.MaxLength=10;form.Children.Add(timerDate);
-  form.Children.Add(Text("Без даты — отсчёт на указанное количество часов и минут. С датой — напоминание в этот день в указанное время по часам компьютера.",11,"Muted"));
+  form.Children.Add(Text("Без даты - отсчёт на указанное количество часов и минут. С датой - напоминание в этот день в указанное время по часам компьютера.",11,"Muted"));
  }
  void PrepareTimerNumberInput(TextBox input){input.GotKeyboardFocus+=(s,e)=>{if(input.Text.Trim()=="0")input.Clear();};input.PreviewMouseLeftButtonDown+=(s,e)=>{if(input.Text.Trim()=="0")input.Clear();};input.LostKeyboardFocus+=(s,e)=>{if(String.IsNullOrWhiteSpace(input.Text))input.Text="0";};}
  public static long ResolveTimerInput(string date,string hours,string minutes,DateTimeOffset now,TimeZoneInfo zone){

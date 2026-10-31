@@ -8,8 +8,8 @@ Companion подходит для Majestic RP, других игр, работы
 
 Распакуй весь архив. В одной папке должны находиться:
 
-- `Majestic Companion.exe` — основная программа;
-- `Companion Updater.exe` — помощник обновления, отдельно запускать его не нужно;
+- `Majestic Companion.exe` - основная программа;
+- `Companion Updater.exe` - помощник обновления, отдельно запускать его не нужно;
 - `Microsoft.Web.WebView2.Core.dll`;
 - `Microsoft.Web.WebView2.Wpf.dll`;
 - `WebView2Loader.dll`.
@@ -21,7 +21,7 @@ Companion подходит для Majestic RP, других игр, работы
 - Windows 10 или 11, 64-разрядная версия.
 - .NET Framework 4.6.2 или новее.
 - Microsoft Edge WebView2 Runtime для браузера: [официальная страница Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
-- Для отображения поверх игры — режим **«Оконный» или «Окно без рамки» в настройках самой игры**. В эксклюзивном полноэкранном режиме окна Companion могут быть не видны.
+- Для отображения поверх игры - режим **«Оконный» или «Окно без рамки» в настройках самой игры**. В эксклюзивном полноэкранном режиме окна Companion могут быть не видны.
 
 ## Обновление старой версии
 

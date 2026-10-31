@@ -15,7 +15,7 @@ public partial class Companion {
   body.Children.Add(Text("Сундучок",18));body.Children.Add(Text("Карты со свином · без интернета",12,"Muted"));
   var tile=Btn("",()=>{if(!gameReorderEditing)Safe(OpenPigGame);});tile.Content=body;tile.HorizontalContentAlignment=HorizontalAlignment.Stretch;
   tile.Padding=new Thickness(16);tile.Margin=new Thickness(0,0,12,12);tile.MinHeight=126;
-  AutomationProperties.SetName(tile,"Играть: Мистер Свин — Сундучок");arcadeTiles.Children.Add(tile);
+  AutomationProperties.SetName(tile,"Играть: Мистер Свин - Сундучок");arcadeTiles.Children.Add(tile);
  }
  public static string EnsurePigAssets(string folder){
   var assembly=typeof(Companion).Assembly;
@@ -54,7 +54,7 @@ public sealed class CompanionPigWindow : Window {
  bool disposed;
  public CompanionPigWindow(ResourceDictionary theme,string profile,string game){
   Resources=theme;profileFolder=profile;gameFolder=game;
-  Title="Companion · Мистер Свин — Сундучок";Width=1020;Height=700;MinWidth=600;MinHeight=460;
+  Title="Companion · Мистер Свин - Сундучок";Width=1020;Height=700;MinWidth=600;MinHeight=460;
   WindowStartupLocation=WindowStartupLocation.CenterScreen;
   SetResourceReference(BackgroundProperty,"Bg");
   var layout=new Grid();layout.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});layout.RowDefinitions.Add(new RowDefinition());
