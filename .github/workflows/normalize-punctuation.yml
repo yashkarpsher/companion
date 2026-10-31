@@ -1,0 +1,67 @@
+name: Normalize repository punctuation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/normalize-punctuation.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Retrieve repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init repository
+          cd repository
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "$GITHUB_SHA"
+          git checkout --detach FETCH_HEAD
+          gh auth setup-git
+      - name: Normalize tracked text and release descriptions
+        shell: bash
+        working-directory: repository
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, json, os, pathlib, subprocess
+          def clean(text):
+              return (text or "").replace("\u2013", "-").replace("\u2014", "-").replace("\u2015", "-")
+          changed = []
+          paths = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          for name in filter(None, paths):
+              path = pathlib.Path(name)
+              if path.suffix.lower() not in {".md", ".txt", ".cs", ".xaml", ".json", ".ps1", ".yml", ".yaml", ".html", ".css", ".js"} and path.name != ".gitignore":
+                  continue
+              raw = path.read_bytes()
+              try:
+                  text = raw.decode("utf-8")
+              except UnicodeDecodeError:
+                  continue
+              updated = clean(text)
+              if updated != text:
+                  path.write_bytes(updated.encode("utf-8"))
+                  changed.append(name)
+          if changed:
+              subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+              subprocess.run(["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], check=True)
+              subprocess.run(["git", "add", "--"] + changed, check=True)
+              subprocess.run(["git", "commit", "-m", "Replace long dashes in repository text"], check=True)
+              subprocess.run(["git", "push", "origin", "HEAD:main"], check=True)
+          repo = os.environ["GITHUB_REPOSITORY"]
+          rows = subprocess.check_output(["gh", "api", "repos/" + repo + "/releases?per_page=100", "--paginate", "--jq", ".[] | @base64"], text=True)
+          releases = 0
+          for row in rows.splitlines():
+              release = json.loads(base64.b64decode(row))
+              body, name = clean(release.get("body")), clean(release.get("name"))
+              if body != (release.get("body") or "") or name != (release.get("name") or ""):
+                  subprocess.run(["gh", "api", "--method", "PATCH", "repos/" + repo + "/releases/" + str(release["id"]), "--input", "-"], input=json.dumps({"body": body, "name": name}), text=True, stdout=subprocess.DEVNULL, check=True)
+                  releases += 1
+          print("Normalized text files:", len(changed))
+          print("Normalized releases:", releases)
+          PY
