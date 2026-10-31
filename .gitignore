@@ -1,0 +1,15 @@
+data/
+browser-preview/
+build/
+releases/
+update-backup-*/
+*.log
+*.tmp
+*.pfx
+*.key
+*.pem
+/Majestic Companion.exe
+/Companion Updater.exe
+/Microsoft.Web.WebView2.Core.dll
+/Microsoft.Web.WebView2.Wpf.dll
+/WebView2Loader.dll
