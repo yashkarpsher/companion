@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'dist/0.16.2/**'
-      - 'docs/release-notes/v0.16.2.md'
+      - 'dist/0.16.4/**'
+      - 'docs/release-notes/v0.16.4.md'
       - '.github/workflows/publish-release.yml'
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: publish-companion-v0.16.2
+  group: publish-companion-v0.16.4
   cancel-in-progress: false
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
-      VERSION: '0.16.2'
+      VERSION: '0.16.4'
     steps:
       - name: Retrieve the published commit
         shell: bash
@@ -35,12 +35,12 @@ jobs:
           git checkout --detach FETCH_HEAD
       - name: Assemble the release archive
         shell: bash
-        working-directory: repository/dist/0.16.2
-        run: cat Majestic-Companion-0.16.2.zip.part* > Majestic-Companion-0.16.2.zip
+        working-directory: repository/dist/0.16.4
+        run: cat Majestic-Companion-0.16.4.zip.part* > Majestic-Companion-0.16.4.zip
       - name: Verify the archive checksum
         shell: bash
-        working-directory: repository/dist/0.16.2
-        run: sha256sum --check Majestic-Companion-0.16.2.zip.sha256
+        working-directory: repository/dist/0.16.4
+        run: sha256sum --check Majestic-Companion-0.16.4.zip.sha256
       - name: Publish the stable release
         shell: bash
         working-directory: repository

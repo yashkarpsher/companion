@@ -52,21 +52,23 @@ public sealed class CompanionDurak {
  }
 }
 
+public enum CompanionBlackjackOutcome {None,Win,Loss,Push,Bust}
 public sealed class CompanionBlackjack {
  readonly Random random;readonly List<CompanionPlayingCard> fixedDeck;
  readonly List<CompanionPlayingCard> deck=new List<CompanionPlayingCard>();
  public readonly List<CompanionPlayingCard> Human=new List<CompanionPlayingCard>(),Dealer=new List<CompanionPlayingCard>();
+ public int CompletedRounds;public CompanionBlackjackOutcome Outcome;
  public int Chips,Bet;public bool Active;public string Message="Выбери ставку и нажми «Раздать».";
  public CompanionBlackjack(int chips,int seed,IEnumerable<CompanionPlayingCard> orderedDeck=null){Chips=Math.Max(0,Math.Min(100000000,chips));random=new Random(seed);if(orderedDeck!=null)fixedDeck=orderedDeck.ToList();}
  public static int Total(IEnumerable<CompanionPlayingCard> cards){int sum=0,aces=0;foreach(var card in cards){if(card.Rank==14){sum+=11;aces++;}else sum+=Math.Min(10,card.Rank);}while(sum>21&&aces>0){sum-=10;aces--;}return sum;}
  public bool CanDouble {get{return Active&&Human.Count==2&&Chips>=Bet;}}
  void Draw(List<CompanionPlayingCard> hand){if(deck.Count==0)throw new InvalidOperationException("В колоде закончились карты.");hand.Add(deck[0]);deck.RemoveAt(0);}
  public bool Start(int bet){
-  if(Active||bet<10||bet%10!=0||bet>Chips)return false;Human.Clear();Dealer.Clear();deck.Clear();deck.AddRange(fixedDeck??CompanionPlayingCard.Deck(2,random));Bet=bet;Chips-=bet;Active=true;Draw(Human);Draw(Dealer);Draw(Human);Draw(Dealer);
-  bool player=Total(Human)==21,dealer=Total(Dealer)==21;if(player||dealer){if(player&&dealer)Finish(Bet,"У обоих блэкджек. Ставка возвращена.");else if(player)Finish(Bet+Bet*3/2,"Блэкджек! Выплата 3:2.");else Finish(0,"У дилера блэкджек. Победа дилера.");}else Message="Твой ход: взять карту, остановиться или удвоить.";return true;
+  if(Active||bet<10||bet%10!=0||bet>Chips)return false;Human.Clear();Dealer.Clear();deck.Clear();deck.AddRange(fixedDeck??CompanionPlayingCard.Deck(2,random));Bet=bet;Chips-=bet;Active=true;Outcome=CompanionBlackjackOutcome.None;Draw(Human);Draw(Dealer);Draw(Human);Draw(Dealer);
+  bool player=Total(Human)==21,dealer=Total(Dealer)==21;if(player||dealer){if(player&&dealer)Finish(Bet,"У обоих блэкджек. Ставка возвращена.",CompanionBlackjackOutcome.Push);else if(player)Finish(Bet+Bet*3/2,"Блэкджек! Выплата 3:2.",CompanionBlackjackOutcome.Win);else Finish(0,"У дилера блэкджек. Победа дилера.",CompanionBlackjackOutcome.Loss);}else Message="Твой ход: взять карту, остановиться или удвоить.";return true;
  }
- void Finish(int returned,string message){Chips+=returned;Active=false;Message=message;}
- public bool Hit(){if(!Active)return false;Draw(Human);int total=Total(Human);if(total>21)Finish(0,"Перебор. Победа дилера.");else if(total==21)Stand();return true;}
- public bool Stand(){if(!Active)return false;while(Total(Dealer)<17)Draw(Dealer);int human=Total(Human),dealer=Total(Dealer);if(dealer>21)Finish(Bet*2,"У дилера перебор. Ты выиграл!");else if(human>dealer)Finish(Bet*2,"Ты выиграл!");else if(human==dealer)Finish(Bet,"Ничья. Ставка возвращена.");else Finish(0,"Победа дилера.");return true;}
- public bool Double(){if(!CanDouble)return false;Chips-=Bet;Bet*=2;Draw(Human);if(Total(Human)>21)Finish(0,"Перебор после удвоения.");else Stand();return true;}
+ void Finish(int returned,string message,CompanionBlackjackOutcome outcome){Chips+=returned;Active=false;Message=message;Outcome=outcome;CompletedRounds++;}
+ public bool Hit(){if(!Active)return false;Draw(Human);int total=Total(Human);if(total>21)Finish(0,"Перебор. Победа дилера.",CompanionBlackjackOutcome.Bust);else if(total==21)Stand();return true;}
+ public bool Stand(){if(!Active)return false;while(Total(Dealer)<17)Draw(Dealer);int human=Total(Human),dealer=Total(Dealer);if(dealer>21)Finish(Bet*2,"У дилера перебор. Ты выиграл!",CompanionBlackjackOutcome.Win);else if(human>dealer)Finish(Bet*2,"Ты выиграл!",CompanionBlackjackOutcome.Win);else if(human==dealer)Finish(Bet,"Ничья. Ставка возвращена.",CompanionBlackjackOutcome.Push);else Finish(0,"Победа дилера.",CompanionBlackjackOutcome.Loss);return true;}
+ public bool Double(){if(!CanDouble)return false;Chips-=Bet;Bet*=2;Draw(Human);if(Total(Human)>21)Finish(0,"Перебор после удвоения.",CompanionBlackjackOutcome.Bust);else Stand();return true;}
 }
