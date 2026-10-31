@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -83,7 +83,7 @@ public partial class Companion {
   var heading=Text("Мини-игры",21);heading.Margin=new Thickness(0,7,0,4);hero.Children.Add(heading);hero.Children.Add(Text("Короткая пауза, пока идёт таймер",12,"Muted"));
   arcadeTiles=new UniformGrid{Columns=2,Margin=new Thickness(0,0,-12,4)};hero.Children.Add(arcadeTiles);
   for(int i=0;i<2;i++){bool runner=i==1;var body=Stack();var top=Text(runner?"↗  NEON RUN":"◇  ORBIT FLIGHT",12,"Accent");body.Children.Add(top);body.Children.Add(Text(runner?"Городской забег":"Держи высоту",18));body.Children.Add(Text(runner?"Три дорожки, прыжки и препятствия":"Пролетай между препятствиями",12,"Muted"));var record=Text("",11,"Muted");record.Margin=new Thickness(0);body.Children.Add(record);if(runner)runnerRecord=record;else flightRecord=record;
-   var tile=Btn("",()=>OpenArcade(runner));tile.Content=body;tile.HorizontalContentAlignment=HorizontalAlignment.Stretch;tile.Margin=new Thickness(0,0,12,12);tile.Padding=new Thickness(16);tile.MinHeight=126;AutomationProperties.SetName(tile,runner?"Играть: Городской забег":"Играть: Держи высоту");arcadeTiles.Children.Add(tile);
+   var tile=Btn("",()=>{if(!gameReorderEditing)OpenArcade(runner);});tile.Content=body;tile.HorizontalContentAlignment=HorizontalAlignment.Stretch;tile.Margin=new Thickness(0,0,12,12);tile.Padding=new Thickness(16);tile.MinHeight=126;AutomationProperties.SetName(tile,runner?"Играть: Городской забег":"Играть: Держи высоту");arcadeTiles.Children.Add(tile);
   }UpdateArcadeRecords();
   arcadeLayer=new Grid{Visibility=Visibility.Collapsed,Background=Brushes.Transparent};Panel.SetZIndex(arcadeLayer,60);root.Children.Add(arcadeLayer);
   var shade=new Border{Background=Brush("#B3000000")};CompanionWindowDrag.SetReserved(shade,true);shade.MouseLeftButtonDown+=(s,e)=>{e.Handled=true;CloseArcade();};arcadeLayer.Children.Add(shade);
@@ -109,5 +109,5 @@ public partial class Companion {
  void UpdateArcadeUi(){if(arcadeGame==null)return;arcadeScore.Text="Очки: "+arcadeGame.Score+"    ·    Рекорд: "+Math.Max(arcadeGame.Score,arcadeGame.Runner?data.RunnerRecord:data.FlightRecord)+(arcadeGame.Runner?"    ·    Скорость: ×"+(arcadeGame.RunnerSpeed/CompanionArcadeGame.RunnerStartSpeed).ToString("0.00")+(arcadeGame.RunnerSpeed>=CompanionArcadeGame.RunnerMaximumSpeed?" · МАКС":""):arcadeGame.MovingPipes?"    ·    Подвижные препятствия":"");arcadeStart.Content=arcadeGame.Started?"Заново":"Играть";arcadePause.Content=arcadeGame.Paused?"Продолжить":"Пауза";arcadePause.IsEnabled=arcadeGame.Started&&!arcadeGame.Over;arcadeField.InvalidateVisual();}
  void CommitArcadeScore(){if(arcadeGame==null)return;int best=arcadeGame.Runner?data.RunnerRecord:data.FlightRecord;if(arcadeGame.Score<=best)return;if(arcadeGame.Runner)data.RunnerRecord=arcadeGame.Score;else data.FlightRecord=arcadeGame.Score;Save();UpdateArcadeRecords();}
  void UpdateArcadeRecords(){if(flightRecord!=null)flightRecord.Text="Рекорд: "+data.FlightRecord+"   ·   Играть →";if(runnerRecord!=null)runnerRecord.Text="Рекорд: "+data.RunnerRecord+"   ·   Играть →";}
- void CloseArcade(){if(arcadeLayer==null||!arcadeOpen)return;arcadeOpen=false;arcadeTicker.Stop();arcadeClock.Stop();CommitArcadeScore();arcadeLayer.IsHitTestVisible=false;int generation=++arcadeGeneration;var fade=new DoubleAnimation(0,TimeSpan.FromMilliseconds(150));fade.Completed+=(s,e)=>{if(generation!=arcadeGeneration||arcadeOpen)return;arcadeLayer.Visibility=Visibility.Collapsed;if(IsActive&&IsVisible&&!sectionDialogOpen&&!designing&&!compact)((Button)arcadeTiles.Children[arcadeGame.Runner?1:0]).Focus();};arcadeLayer.BeginAnimation(OpacityProperty,fade);}
+ void CloseArcade(){if(arcadeLayer==null||!arcadeOpen)return;arcadeOpen=false;arcadeTicker.Stop();arcadeClock.Stop();CommitArcadeScore();arcadeLayer.IsHitTestVisible=false;int generation=++arcadeGeneration;var fade=new DoubleAnimation(0,TimeSpan.FromMilliseconds(150));fade.Completed+=(s,e)=>{if(generation!=arcadeGeneration||arcadeOpen)return;arcadeLayer.Visibility=Visibility.Collapsed;if(IsActive&&IsVisible&&!sectionDialogOpen&&!designing&&!compact)gameButtons[arcadeGame.Runner?1:0].Focus();};arcadeLayer.BeginAnimation(OpacityProperty,fade);}
 }

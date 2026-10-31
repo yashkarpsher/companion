@@ -1,4 +1,4 @@
-﻿param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
+param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
 $ErrorActionPreference = 'Stop'
 $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
 $compiler = Join-Path $framework 'csc.exe'
@@ -26,10 +26,12 @@ $buildArguments += (Join-Path $PSScriptRoot 'CompanionDashboard.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionWindowDrag.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionSplash.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionSectionOrder.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionGameOrder.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionSectionDialog.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionWidgets.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionTimerSchedule.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionArcade.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionPig.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionHelp.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionCreator.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionUpdates.cs')
@@ -46,6 +48,7 @@ foreach ($name in @('header','palette','opacity','wallpaper','browser','hotkeys'
  if (!(Test-Path -LiteralPath $picture)) { throw ('Missing tutorial screenshot: ' + $picture) }
  $buildArguments += '/resource:' + $picture + ',Tutorial.' + $name + '.png'
 }
+$buildArguments += '/resource:' + (Join-Path $PSScriptRoot 'Assets\MisterSvin.zip') + ',CompanionPigAssets'
 & $compiler @buildArguments
 if ($LASTEXITCODE -ne 0) { throw 'Compilation failed' }
 $destination = Split-Path -Parent ([IO.Path]::GetFullPath($OutputPath))

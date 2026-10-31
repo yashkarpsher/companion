@@ -1,4 +1,4 @@
-﻿# Установка и первый запуск
+# Установка и первый запуск
 
 Companion подходит для Majestic RP, других игр, работы и повседневных задач. Запускать игру для использования помощника необязательно.
 
@@ -42,7 +42,7 @@ Companion подходит для Majestic RP, других игр, работы
 Рядом с архивом в релизе опубликован файл `.zip.sha256`. Проверить скачанный ZIP можно в PowerShell:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '.\Majestic-Companion-0.15.0.zip'
+Get-FileHash -Algorithm SHA256 -LiteralPath '.\Majestic-Companion-0.16.2.zip'
 ```
 
 Сравни значение с файлом контрольной суммы. Проверка подтверждает целостность скачивания.

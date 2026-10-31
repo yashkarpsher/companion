@@ -1,4 +1,4 @@
-﻿param([string]$OutputDirectory = (Join-Path $PSScriptRoot 'releases'))
+param([string]$OutputDirectory = (Join-Path $PSScriptRoot 'releases'))
 $ErrorActionPreference = 'Stop'
 $versionText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CompanionAssembly.cs'))
 $match = [regex]::Match($versionText, 'AssemblyVersion\("(\d+\.\d+\.\d+)\.0"\)')
