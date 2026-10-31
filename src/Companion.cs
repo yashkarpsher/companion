@@ -22,7 +22,7 @@ public class Entry { public string Id {get;set;} public string Title {get;set;} 
 public class CasinoEntry { public string Id {get;set;} public string Activity {get;set;} public double Stake {get;set;} public double Returned {get;set;} public DateTime Date {get;set;} }
 public class Memo { public string Id {get;set;} public string Title {get;set;} public string Body {get;set;} public DateTime Updated {get;set;} }
 public class Profile {
- public int? BlackjackChips {get;set;} public bool? AutoCheckUpdates {get;set;} public bool TutorialSeen {get;set;} public int FlightRecord {get;set;} public int RunnerRecord {get;set;} public string BrowserHome {get;set;}
+ public int Runner3DRecord {get;set;} public int? BlackjackChips {get;set;} public bool? AutoCheckUpdates {get;set;} public bool TutorialSeen {get;set;} public int FlightRecord {get;set;} public int RunnerRecord {get;set;} public string BrowserHome {get;set;}
  public double? BrowserVolume {get;set;}
  public string QuickNoteHotkey {get;set;} public List<CompanionWidgetState> Widgets {get;set;} public string ShowHotkey {get;set;} public string InputHotkey {get;set;}
  public bool? BackgroundVideo {get;set;}

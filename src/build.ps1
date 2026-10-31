@@ -1,5 +1,12 @@
 param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
 $ErrorActionPreference = 'Stop'
+$runnerSource = Join-Path $PSScriptRoot 'Games\Runner3D'
+if (Test-Path -LiteralPath $runnerSource) {
+ Add-Type -AssemblyName System.IO.Compression.FileSystem
+ $runnerZip = Join-Path $PSScriptRoot 'Assets\Runner3D.zip'
+ $temporaryRunnerZip = Join-Path ([IO.Path]::GetTempPath()) ('CompanionRunner-' + [Guid]::NewGuid().ToString('N') + '.zip')
+ try { [IO.Compression.ZipFile]::CreateFromDirectory($runnerSource,$temporaryRunnerZip); Copy-Item -LiteralPath $temporaryRunnerZip -Destination $runnerZip -Force } finally { if (Test-Path -LiteralPath $temporaryRunnerZip) { Remove-Item -LiteralPath $temporaryRunnerZip } }
+}
 $gameAsset = Join-Path $PSScriptRoot 'Assets\MisterSvin.zip'
 if (!(Test-Path -LiteralPath $gameAsset)) {
  $parts = @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'Assets') -Filter 'MisterSvin.zip.part*' | Sort-Object Name)
@@ -38,6 +45,8 @@ $buildArguments += (Join-Path $PSScriptRoot 'CompanionSectionDialog.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionWidgets.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionTimerSchedule.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionArcade.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionFlightVisual.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionRunner3D.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionPig.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionHelp.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionCreator.cs')
@@ -56,6 +65,7 @@ foreach ($name in @('header','palette','opacity','wallpaper','browser','hotkeys'
  $buildArguments += '/resource:' + $picture + ',Tutorial.' + $name + '.png'
 }
 $buildArguments += '/resource:' + (Join-Path $PSScriptRoot 'Assets\MisterSvin.zip') + ',CompanionPigAssets'
+$buildArguments += '/resource:' + (Join-Path $PSScriptRoot 'Assets\Runner3D.zip') + ',CompanionRunner3DAssets'
 & $compiler @buildArguments
 if ($LASTEXITCODE -ne 0) { throw 'Compilation failed' }
 $destination = Split-Path -Parent ([IO.Path]::GetFullPath($OutputPath))
