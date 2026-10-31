@@ -1,11 +1,11 @@
-name: Publish Companion release
+﻿name: Publish Companion release
 
 on:
   push:
     branches: [main]
     paths:
-      - 'dist/0.13.4/**'
-      - 'docs/release-notes/v0.13.4.md'
+      - 'dist/0.13.5/**'
+      - 'docs/release-notes/v0.13.5.md'
       - '.github/workflows/publish-release.yml'
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: publish-companion-v0.13.4
+  group: publish-companion-v0.13.5
   cancel-in-progress: false
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
-      VERSION: '0.13.4'
+      VERSION: '0.13.5'
     steps:
       - name: Retrieve the published commit
         shell: bash
@@ -35,8 +35,8 @@ jobs:
           git checkout --detach FETCH_HEAD
       - name: Verify the archive checksum
         shell: bash
-        working-directory: repository/dist/0.13.4
-        run: sha256sum --check Majestic-Companion-0.13.4.zip.sha256
+        working-directory: repository/dist/0.13.5
+        run: sha256sum --check Majestic-Companion-0.13.5.zip.sha256
       - name: Publish the stable release
         shell: bash
         working-directory: repository

@@ -77,7 +77,7 @@ public partial class Companion {
   showHotkeyRegistered=inputHotkeyRegistered=true;showBinding=nextShow;inputBinding=nextInput;
   data.ShowHotkey=nextShow.ToString();data.InputHotkey=nextInput.ToString();Save();UpdateOverlayHelp();Say("Клавиши сохранены: "+ShowBinding+" — окно; "+InputBinding+" — управление мышью.");
  }
- void UpdateOverlayHelp(){if(tray!=null)tray.Text="Companion · "+ShowBinding;if(feedback!=null)feedback.Text="v"+GetType().Assembly.GetName().Version.ToString(3)+" · "+(gameInputLocked?"Режим игры · "+InputBinding+" — вернуть управление":"Готов к игре · "+InputBinding+" — в игру · "+ShowBinding+" — окно");}
+ void UpdateOverlayHelp(){if(tray!=null)tray.Text="Companion · "+ShowBinding;if(feedback!=null)feedback.Text="v"+GetType().Assembly.GetName().Version.ToString(3)+" · "+(gameInputLocked?"Режим игры · "+InputBinding+" — вернуть управление":"Готов к работе · "+InputBinding+" — в игру · "+ShowBinding+" — окно");}
  TextBox HotkeyEditor(string title,string value){
   var editor=Input(title,value);editor.IsReadOnly=true;editor.ToolTip="Нажми Ctrl или Alt с буквой, цифрой либо F1–F24. Изменения применяются кнопкой сохранения.";
   editor.GotKeyboardFocus+=(s,e)=>{if(source==null)return;if(gameInputLocked)SetGameInput(false);UnregisterHotKey(source.Handle,17);UnregisterHotKey(source.Handle,18);UnregisterHotKey(source.Handle,19);showHotkeyRegistered=inputHotkeyRegistered=false;};

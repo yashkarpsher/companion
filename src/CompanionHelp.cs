@@ -45,7 +45,7 @@ public partial class Companion {
   string[] headings={"Кнопки главного окна","Твой любимый цвет","Картинка и прозрачность","Все кнопки браузера","Твои горячие клавиши","Мини-режим и виджеты","Мышь — игре, помощник — рядом"};helpHeading.Text=headings[helpIndex];helpStep.Text="УДОБНЫЕ МЕЛОЧИ · "+(helpIndex+1)+" / "+TutorialSteps;helpBody.Children.Clear();
   switch(helpIndex){
    case 0:
-    helpBody.Children.Add(Text("Главные кнопки всегда находятся в верхней панели.",15));TutorialPicture("header");TutorialPoint(1,"Шестерёнка открывает настройки: цвет, фон и горячие клавиши.");TutorialPoint(2,"Дверца полностью закрывает программу. Уведомления после выхода не работают.");TutorialPoint(3,"«Мини» сворачивает главное окно до одной записи.");TutorialPoint(4,"«−» прячет программу в трей. Таймеры продолжают работать.");helpBody.Children.Add(Text("На скриншотах — базовый дизайн и стандартные клавиши. Твои настройки могут отличаться.",12,"Muted"));break;
+    helpBody.Children.Add(Text("Companion подходит для разных игр, работы и повседневных дел. Главные кнопки — в верхней панели.",15));TutorialPicture("header");helpBody.Children.Add(Card(Text("Чтобы помощник отображался поверх игры, включи в ней «Оконный» режим или «Окно без рамки».",13)));TutorialPoint(1,"Шестерёнка открывает настройки: цвет, фон и горячие клавиши.");TutorialPoint(2,"Дверца полностью закрывает программу. Уведомления после выхода не работают.");TutorialPoint(3,"«Мини» сворачивает главное окно до одной записи.");TutorialPoint(4,"«−» прячет программу в трей. Таймеры продолжают работать.");helpBody.Children.Add(Text("На скриншотах — базовый дизайн и стандартные клавиши. Твои настройки могут отличаться.",12,"Muted"));break;
    case 1:
     helpBody.Children.Add(Text("Шестерёнка → «Своя палитра».",15));TutorialPicture("palette");TutorialPoint(1,"Нажми на готовый цвет — он применится сразу.");TutorialPoint(2,"Или вставь свой HEX-код и нажми «Применить цвет».");break;
    case 2:
@@ -67,7 +67,7 @@ public partial class Companion {
   return "Companion — таймеры, дела, заметки, финансы, калькулятор и браузер. Инструкция находится в файле «Прочитай меня.txt» рядом с программой.";
  }
  void OpenAbout(){
-  helpTutorial=false;helpHeading.Text="О программе";helpStep.Text="COMPANION · ВЕРСИЯ "+GetType().Assembly.GetName().Version.ToString(3);helpBody.Children.Clear();helpBody.Children.Add(Text("Помощник для твоей игровой сессии",15,"Accent"));
+  helpTutorial=false;helpHeading.Text="О программе";helpStep.Text="COMPANION · ВЕРСИЯ "+GetType().Assembly.GetName().Version.ToString(3);helpBody.Children.Clear();helpBody.Children.Add(Text("Помощник для игр, работы и повседневных дел",15,"Accent"));helpBody.Children.Add(Text("Companion можно использовать с Majestic RP, другими играми и без запущенной игры.",14));helpBody.Children.Add(Card(Text("Для отображения поверх игры выбери в настройках самой игры «Оконный» режим или «Окно без рамки».",14)));
   helpBody.Children.Add(new WrapPanel{Children={Btn("Пройти обучение",OpenTutorial,true),Btn("О создателе",OpenCreator)}});helpBody.Children.Add(Text("Инструкция из файла «Прочитай меня.txt»",12,"Muted"));var instruction=Text(ReadProgramReadme(),13);instruction.FontWeight=FontWeights.Normal;helpBody.Children.Add(instruction);
   helpBack.Visibility=helpNext.Visibility=Visibility.Collapsed;helpSkip.Content="← Назад";helpScroll.ScrollToTop();ShowHelp();helpSkip.Focus();
  }
