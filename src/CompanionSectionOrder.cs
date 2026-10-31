@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -36,7 +36,7 @@ public partial class Companion {
   if(sectionTiles==null||sectionButtons.Count!=SectionKeys.Length)return;
   CancelSectionPointer();data.SectionOrder=NormalizeSectionOrder(data.SectionOrder);sectionTiles.Children.Clear();
   foreach(string key in data.SectionOrder)sectionTiles.Children.Add(sectionButtons[Array.IndexOf(SectionKeys,key)]);
-  UpdateSectionTiles();
+  UpdateSectionTiles();SyncWorkspaceNavOrder();
  }
  void MoveSection(string source,string target){
   data.SectionOrder=MoveSectionInOrder(data.SectionOrder,source,target);ApplySectionOrder();Save();

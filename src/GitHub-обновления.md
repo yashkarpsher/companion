@@ -1,4 +1,4 @@
-# Обновления Companion через GitHub
+﻿# Обновления Companion через GitHub
 
 Репозиторий: https://github.com/yashkarpsher/companion
 

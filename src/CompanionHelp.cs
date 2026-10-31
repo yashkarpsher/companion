@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -35,7 +35,7 @@ public partial class Companion {
  void TutorialPicture(string name){
   using(var stream=GetType().Assembly.GetManifestResourceStream("Tutorial."+name+".png")){
    if(stream==null){helpBody.Children.Add(Text("Скриншот недоступен. Ориентируйся на названия кнопок ниже.",12,"Muted"));return;}
-   var bitmap=new BitmapImage();bitmap.BeginInit();bitmap.CacheOption=BitmapCacheOption.OnLoad;bitmap.StreamSource=stream;bitmap.EndInit();bitmap.Freeze();var picture=new Image{Source=bitmap,Stretch=Stretch.Uniform,MaxWidth=680,Margin=new Thickness(0,6,0,12),HorizontalAlignment=HorizontalAlignment.Left};System.Windows.Automation.AutomationProperties.SetName(picture,"Скриншот: "+name+". Нужные кнопки отмечены цифрами.");helpBody.Children.Add(picture);
+   var bitmap=new BitmapImage();bitmap.BeginInit();bitmap.CacheOption=BitmapCacheOption.OnLoad;bitmap.StreamSource=stream;bitmap.EndInit();bitmap.Freeze();if(name=="header"){helpBody.Children.Add(HeaderTutorialPicture(bitmap));return;}var picture=new Image{Source=bitmap,Stretch=Stretch.Uniform,MaxWidth=680,Margin=new Thickness(0,6,0,12),HorizontalAlignment=HorizontalAlignment.Left};System.Windows.Automation.AutomationProperties.SetName(picture,"Скриншот: "+name+". Нужные кнопки отмечены цифрами.");helpBody.Children.Add(picture);
   }
  }
  void TutorialPoint(int number,string message){
@@ -45,7 +45,7 @@ public partial class Companion {
   string[] headings={"Кнопки главного окна","Твой любимый цвет","Картинка и прозрачность","Все кнопки браузера","Твои горячие клавиши","Мини-режим и виджеты","Мышь - игре, помощник - рядом"};helpHeading.Text=headings[helpIndex];helpStep.Text="УДОБНЫЕ МЕЛОЧИ · "+(helpIndex+1)+" / "+TutorialSteps;helpBody.Children.Clear();
   switch(helpIndex){
    case 0:
-    helpBody.Children.Add(Text("Companion подходит для разных игр, работы и повседневных дел. Главные кнопки - в верхней панели.",15));TutorialPicture("header");helpBody.Children.Add(Card(Text("Чтобы помощник отображался поверх игры, включи в ней «Оконный» режим или «Окно без рамки».",13)));TutorialPoint(1,"Шестерёнка открывает настройки: цвет, фон и горячие клавиши.");TutorialPoint(2,"Дверца полностью закрывает программу. Уведомления после выхода не работают.");TutorialPoint(3,"«Мини» сворачивает главное окно до одной записи.");TutorialPoint(4,"«−» прячет программу в трей. Таймеры продолжают работать.");helpBody.Children.Add(Text("На скриншотах - базовый дизайн и стандартные клавиши. Твои настройки могут отличаться.",12,"Muted"));break;
+    helpBody.Children.Add(Text("Companion подходит для разных игр, работы и повседневных дел. Разделы открываются в меню слева. В «Обзоре» остаются плитки, а мини-игры вынесены отдельным пунктом. Главные кнопки - в верхней панели.",15));TutorialPicture("header");helpBody.Children.Add(Card(Text("Чтобы помощник отображался поверх игры, включи в ней «Оконный» режим или «Окно без рамки».",13)));TutorialPoint(1,"Шестерёнка открывает настройки: цвет, фон и горячие клавиши.");TutorialPoint(2,"Дверца полностью закрывает программу. Уведомления после выхода не работают.");TutorialPoint(3,"«Мини» сворачивает главное окно до одной записи.");TutorialPoint(4,"«−» прячет программу в трей. Таймеры продолжают работать.");helpBody.Children.Add(Text("На скриншотах - базовый дизайн и стандартные клавиши. Твои настройки могут отличаться.",12,"Muted"));break;
    case 1:
     helpBody.Children.Add(Text("Шестерёнка → «Своя палитра».",15));TutorialPicture("palette");TutorialPoint(1,"Нажми на готовый цвет - он применится сразу.");TutorialPoint(2,"Или вставь свой HEX-код и нажми «Применить цвет».");break;
    case 2:

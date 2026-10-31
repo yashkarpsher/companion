@@ -1,0 +1,48 @@
+{
+  "source": "https://st.8games.net/11/igra-sabvej-serf-sankt-peterburg/",
+  "engine": "Unity WebGL 2019.2",
+  "files": [
+    {
+      "file": "index.html",
+      "bytes": 2583,
+      "sha256": "a3653cd45a49aa360bb16386452bf3eab51d24f5f4e01bedbcedfa943a2e639d"
+    },
+    {
+      "file": "4399.js",
+      "bytes": 909035,
+      "sha256": "973d983ab6fc4732e889877ab216aa599df5e5feb2b198cff477ebb012677611"
+    },
+    {
+      "file": "loaders/v2/unity/static/UnityLoader.2019.2.js",
+      "bytes": 237683,
+      "sha256": "0b76f0b4ff9b9219a78b251acd18de8ccfbad72eda1911b890188b926913d402"
+    },
+    {
+      "file": "Build/StPetersburg.json",
+      "bytes": 585,
+      "sha256": "04e4ec74ccd9f289d38611ce8a2acdf58d821edf27c16104926f7c3c9b61f799"
+    },
+    {
+      "file": "Build/StPetersburg.data.unityweb",
+      "bytes": 28267435,
+      "sha256": "08a100ad39589d1d31a7193a13544b5108dc82dfead988d9821ac79af26a8134"
+    },
+    {
+      "file": "Build/StPetersburg.wasm.code.unityweb",
+      "bytes": 26477108,
+      "sha256": "fdcc8e0b785fd967e6995cbec838b321c6d67defd25c28b3865e19d1b62c0728"
+    },
+    {
+      "file": "Build/StPetersburg.wasm.framework.unityweb",
+      "bytes": 843570,
+      "sha256": "c5aabaf6972ac2a60b909b08aa612bd11868e3dd99da97086878a5c243b440db"
+    }
+  ],
+  "note": "WASM build downloaded. Legacy asm.js URLs returned 404 and were removed from local manifest. Local HTML replaces portal and ad loader; IndexedDB path routing added.",
+  "localChanges": [
+    "Local-only HTML and ad SDK replacement",
+    "Age popup hidden via its existing Hide method; no birthday selected or registered",
+    "URL-based save directory mounted in IndexedDB"
+  ],
+  "validation": "Loaded local main menu and started a run without entering a birth date. Long-term save portability not tested."
+}

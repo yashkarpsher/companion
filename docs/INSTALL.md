@@ -20,7 +20,7 @@ Companion подходит для Majestic RP, других игр, работы
 
 - Windows 10 или 11, 64-разрядная версия.
 - .NET Framework 4.6.2 или новее.
-- Microsoft Edge WebView2 Runtime для браузера: [официальная страница Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
+- Microsoft Edge WebView2 Runtime для браузера, Свина и Subway Surfers: [официальная страница Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
 - Для отображения поверх игры - режим **«Оконный» или «Окно без рамки» в настройках самой игры**. В эксклюзивном полноэкранном режиме окна Companion могут быть не видны.
 
 ## Обновление старой версии
@@ -42,7 +42,9 @@ Companion подходит для Majestic RP, других игр, работы
 Рядом с архивом в релизе опубликован файл `.zip.sha256`. Проверить скачанный ZIP можно в PowerShell:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '.\Majestic-Companion-0.17.2.zip'
+Get-FileHash -Algorithm SHA256 -LiteralPath '.\Majestic-Companion-0.17.6.zip'
 ```
 
 Сравни значение с файлом контрольной суммы. Проверка подтверждает целостность скачивания.
+
+Subway Surfers заметно тяжелее прежнего забега: буфер памяти Unity составляет 352 МиБ, плюс ресурсы WebView2 и графики. При первом запуске распаковываются встроенные файлы. Сохранения этой игры находятся в `data/subway-spb`.

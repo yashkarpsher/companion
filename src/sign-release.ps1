@@ -1,4 +1,4 @@
-param(
+﻿param(
  [Parameter(Mandatory=$true)][string]$CertificateThumbprint,
  [string]$ReleaseDirectory = (Join-Path $PSScriptRoot '..'),
  [string]$SignToolPath = 'signtool.exe'

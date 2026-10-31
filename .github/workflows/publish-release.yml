@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'dist/0.17.2/**'
-      - 'docs/release-notes/v0.17.2.md'
+      - 'dist/0.17.6/**'
+      - 'docs/release-notes/v0.17.6.md'
       - '.github/workflows/publish-release.yml'
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: publish-companion-v0.17.2
+  group: publish-companion-v0.17.6
   cancel-in-progress: false
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
-      VERSION: '0.17.2'
+      VERSION: '0.17.6'
     steps:
       - name: Retrieve the published commit
         shell: bash
@@ -35,12 +35,12 @@ jobs:
           git checkout --detach FETCH_HEAD
       - name: Assemble the release archive
         shell: bash
-        working-directory: repository/dist/0.17.2
-        run: cat Majestic-Companion-0.17.2.zip.part* > Majestic-Companion-0.17.2.zip
+        working-directory: repository/dist/0.17.6
+        run: cat Majestic-Companion-0.17.6.zip.part* > Majestic-Companion-0.17.6.zip
       - name: Verify the archive checksum
         shell: bash
-        working-directory: repository/dist/0.17.2
-        run: sha256sum --check Majestic-Companion-0.17.2.zip.sha256
+        working-directory: repository/dist/0.17.6
+        run: sha256sum --check Majestic-Companion-0.17.6.zip.sha256
       - name: Publish the stable release
         shell: bash
         working-directory: repository
@@ -58,3 +58,14 @@ jobs:
             --title "${VERSION}" \
             --notes-file "docs/release-notes/v${VERSION}.md" \
             --latest
+      - name: Refresh release descriptions
+        shell: bash
+        working-directory: repository
+        run: |
+          set -euo pipefail
+          for notes in docs/release-notes/v*.md; do
+            tag="$(basename "$notes" .md)"
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file "$notes"
+            fi
+          done

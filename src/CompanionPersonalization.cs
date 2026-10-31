@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -62,7 +62,7 @@ public partial class Companion {
   Grid.SetRow(settingsPage,1);Grid.SetRowSpan(settingsPage,2);feedback.MaxHeight=42;
   normalLayout.PreviewMouseWheel+=ScrollMainWheel;tabs.SelectionChanged+=(s,e)=>{if(e.Source==tabs&&mainScroll!=null)mainScroll.ScrollToTop();};SizeChanged+=(s,e)=>UpdateMainLayout();UpdateMainLayout();
  }
- void UpdateMainLayout(){if(mainScroll!=null)mainScroll.Visibility=designing?Visibility.Collapsed:Visibility.Visible;if(brand!=null)brand.Visibility=ActualWidth>0&&ActualWidth<540?Visibility.Collapsed:Visibility.Visible;UpdateDashboardLayout();}
+ void UpdateMainLayout(){if(workspaceInstalled){UpdateWorkspaceLayout();return;}if(mainScroll!=null)mainScroll.Visibility=designing?Visibility.Collapsed:Visibility.Visible;if(brand!=null)brand.Visibility=ActualWidth>0&&ActualWidth<540?Visibility.Collapsed:Visibility.Visible;UpdateDashboardLayout();}
  void ScrollMainWheel(object sender,MouseWheelEventArgs e){
   DependencyObject node=e.OriginalSource as DependencyObject;
   while(node!=null){var scroll=node as ScrollViewer;if(scroll!=null&&scroll.ScrollableHeight>0&&((e.Delta<0&&scroll.VerticalOffset<scroll.ScrollableHeight)||(e.Delta>0&&scroll.VerticalOffset>0))){scroll.ScrollToVerticalOffset(scroll.VerticalOffset-e.Delta/120.0*Math.Max(1,SystemParameters.WheelScrollLines)*20);e.Handled=true;return;}

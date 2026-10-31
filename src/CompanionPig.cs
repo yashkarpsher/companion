@@ -1,6 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.ComponentModel;
+using System.Windows.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
@@ -40,7 +43,7 @@ public partial class Companion {
  }
  void OpenPigGame(){
   if(pigWindow==null){
-   pigWindow=new CompanionPigWindow(Resources,Path.Combine(Folder,"mister-svin"),EnsurePigAssets(Folder));
+   pigWindow=new CompanionPigWindow(Resources,Path.Combine(Folder,"mister-svin"),EnsurePigAssets(Folder),MiniGameVolume);
    pigWindow.Topmost=data.Top;pigWindow.Closed+=(s,e)=>pigWindow=null;
   }
   pigWindow.Show();if(pigWindow.WindowState==WindowState.Minimized)pigWindow.WindowState=WindowState.Normal;pigWindow.Activate();
@@ -51,21 +54,25 @@ public sealed class CompanionPigWindow : Window {
  readonly WebView2CompositionControl view;
  readonly TextBlock status;
  readonly string profileFolder,gameFolder;
+ readonly CompanionMiniGameVolume gameVolume;readonly PropertyChangedEventHandler volumeChanged;CoreWebView2Environment audioEnvironment;readonly DispatcherTimer audioRefresh=new DispatcherTimer{Interval=TimeSpan.FromSeconds(2)};
+ public double Volume {get{return gameVolume.Percent;}set{gameVolume.Percent=value;}}
+ void ApplyGameVolume(){if(disposed||view.CoreWebView2==null)return;try{view.CoreWebView2.IsMuted=gameVolume.Percent==0;if(audioEnvironment!=null&&gameVolume.Percent>0)CompanionBrowserAudio.Apply(audioEnvironment.GetProcessInfos().Select(info=>info.ProcessId),gameVolume.Percent);}catch{}}
  bool disposed;
- public CompanionPigWindow(ResourceDictionary theme,string profile,string game){
+ public CompanionPigWindow(ResourceDictionary theme,string profile,string game,CompanionMiniGameVolume volume=null){
+  gameVolume=volume??new CompanionMiniGameVolume(60);volumeChanged=(sender,args)=>ApplyGameVolume();gameVolume.PropertyChanged+=volumeChanged;audioRefresh.Tick+=(sender,args)=>ApplyGameVolume();
   Resources=theme;profileFolder=profile;gameFolder=game;
   Title="Companion · Мистер Свин - Сундучок";Width=1020;Height=700;MinWidth=600;MinHeight=460;
   WindowStartupLocation=WindowStartupLocation.CenterScreen;
   SetResourceReference(BackgroundProperty,"Bg");
   var layout=new Grid();layout.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});layout.RowDefinitions.Add(new RowDefinition());
-  var header=new DockPanel{Margin=new Thickness(12,8,12,8)};
+  var header=new WrapPanel{Margin=new Thickness(12,8,12,8)};
   var back=new Button{Content="← Закрыть игру",Padding=new Thickness(10,5,10,5),Margin=new Thickness(0,0,14,0)};
-  back.Click+=(s,e)=>Close();DockPanel.SetDock(back,Dock.Left);header.Children.Add(back);
+  back.Click+=(s,e)=>Close();DockPanel.SetDock(back,Dock.Left);header.Children.Add(back);header.Children.Add(gameVolume.Controls());
   status=new TextBlock{Text="Загрузка игры…",VerticalAlignment=VerticalAlignment.Center};status.SetResourceReference(TextBlock.ForegroundProperty,"Text");header.Children.Add(status);layout.Children.Add(header);
   view=new WebView2CompositionControl{DefaultBackgroundColor=System.Drawing.Color.FromArgb(255,5,87,124)};
   Grid.SetRow(view,1);layout.Children.Add(view);Content=layout;
   Loaded+=async(s,e)=>await Initialize();
-  Closed+=(s,e)=>{disposed=true;view.Dispose();};
+  Closed+=(s,e)=>{disposed=true;audioRefresh.Stop();gameVolume.PropertyChanged-=volumeChanged;view.Dispose();};
  }
  async Task Initialize(){
   try{
@@ -73,7 +80,7 @@ public sealed class CompanionPigWindow : Window {
    Directory.CreateDirectory(profileFolder);
    var env=await CoreWebView2Environment.CreateAsync(null,profileFolder);
    if(disposed)return;await view.EnsureCoreWebView2Async(env);if(disposed)return;
-   var core=view.CoreWebView2;
+   audioEnvironment=env;var core=view.CoreWebView2;ApplyGameVolume();audioRefresh.Start();
    core.Settings.AreHostObjectsAllowed=false;core.Settings.IsWebMessageEnabled=false;
    core.Settings.AreDefaultContextMenusEnabled=false;core.Settings.AreDevToolsEnabled=false;
    core.SetVirtualHostNameToFolderMapping("mister-svin.invalid",gameFolder,CoreWebView2HostResourceAccessKind.DenyCors);

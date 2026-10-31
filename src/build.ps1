@@ -1,11 +1,27 @@
-param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
+﻿param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
 $ErrorActionPreference = 'Stop'
-$runnerSource = Join-Path $PSScriptRoot 'Games\Runner3D'
+$runnerSource = Join-Path $PSScriptRoot 'Games\SubwaySaintPetersburg'
 if (Test-Path -LiteralPath $runnerSource) {
  Add-Type -AssemblyName System.IO.Compression.FileSystem
+ foreach ($firstPart in @(Get-ChildItem -LiteralPath $runnerSource -Filter '*.part000' -File -Recurse)) {
+  $assetPath = $firstPart.FullName.Substring(0,$firstPart.FullName.Length - 8)
+  if (!(Test-Path -LiteralPath $assetPath)) {
+   $assetParts = @(Get-ChildItem -LiteralPath $firstPart.DirectoryName -Filter (([IO.Path]::GetFileName($assetPath)) + '.part*') -File | Sort-Object Name)
+   $assetStream = [IO.File]::Create($assetPath)
+   try { foreach ($assetPart in $assetParts) { $partStream = [IO.File]::OpenRead($assetPart.FullName); try { $partStream.CopyTo($assetStream) } finally { $partStream.Dispose() } } } finally { $assetStream.Dispose() }
+  }
+  $hashPath = $assetPath + '.sha256'
+  if (!(Test-Path -LiteralPath $hashPath)) { throw ('Missing asset checksum: ' + $hashPath) }
+  $expectedHash = ([IO.File]::ReadAllText($hashPath)).Trim().Split(' ')[0]
+  if ((Get-FileHash -LiteralPath $assetPath -Algorithm SHA256).Hash -ne $expectedHash) { throw ('Asset checksum mismatch: ' + $assetPath) }
+ }
  $runnerZip = Join-Path $PSScriptRoot 'Assets\Runner3D.zip'
  $temporaryRunnerZip = Join-Path ([IO.Path]::GetTempPath()) ('CompanionRunner-' + [Guid]::NewGuid().ToString('N') + '.zip')
- try { [IO.Compression.ZipFile]::CreateFromDirectory($runnerSource,$temporaryRunnerZip); Copy-Item -LiteralPath $temporaryRunnerZip -Destination $runnerZip -Force } finally { if (Test-Path -LiteralPath $temporaryRunnerZip) { Remove-Item -LiteralPath $temporaryRunnerZip } }
+ try {
+  $gameZip = [IO.Compression.ZipFile]::Open($temporaryRunnerZip,[IO.Compression.ZipArchiveMode]::Create)
+  try { foreach ($gameFile in @('index.html','companion.js','4399.js','loaders/v2/unity/static/UnityLoader.2019.2.js','Build/StPetersburg.json','Build/StPetersburg.data.unityweb','Build/StPetersburg.wasm.code.unityweb','Build/StPetersburg.wasm.framework.unityweb')) { [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($gameZip,(Join-Path $runnerSource $gameFile),$gameFile,[IO.Compression.CompressionLevel]::Optimal) | Out-Null } } finally { $gameZip.Dispose() }
+  Copy-Item -LiteralPath $temporaryRunnerZip -Destination $runnerZip -Force
+ } finally { if (Test-Path -LiteralPath $temporaryRunnerZip) { Remove-Item -LiteralPath $temporaryRunnerZip } }
 }
 $gameAsset = Join-Path $PSScriptRoot 'Assets\MisterSvin.zip'
 if (!(Test-Path -LiteralPath $gameAsset)) {
@@ -37,6 +53,9 @@ $buildArguments += (Join-Path $PSScriptRoot 'CompanionBrowserAudio.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionOverlay.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionPersonalization.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionDashboard.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionLibraryArt.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionWorkspace.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionWorkspaceTimers.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionWindowDrag.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionSplash.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionSectionOrder.cs')
@@ -45,6 +64,8 @@ $buildArguments += (Join-Path $PSScriptRoot 'CompanionSectionDialog.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionWidgets.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionTimerSchedule.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionArcade.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionSavings.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionGameVolume.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionFlightVisual.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionRunner3D.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionPig.cs')
@@ -66,6 +87,11 @@ foreach ($name in @('header','palette','opacity','wallpaper','browser','hotkeys'
 }
 $buildArguments += '/resource:' + (Join-Path $PSScriptRoot 'Assets\MisterSvin.zip') + ',CompanionPigAssets'
 $buildArguments += '/resource:' + (Join-Path $PSScriptRoot 'Assets\Runner3D.zip') + ',CompanionRunner3DAssets'
+foreach ($cover in @('flight','runner','durak','blackjack','svin')) {
+ $coverPath = Join-Path $PSScriptRoot ('game-covers\' + $cover + '.png')
+ if (!(Test-Path -LiteralPath $coverPath)) { throw ('Missing game cover: ' + $cover) }
+ $buildArguments += '/resource:' + $coverPath + ',GameCover.' + $cover
+}
 & $compiler @buildArguments
 if ($LASTEXITCODE -ne 0) { throw 'Compilation failed' }
 $destination = Split-Path -Parent ([IO.Path]::GetFullPath($OutputPath))

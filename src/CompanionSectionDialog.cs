@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -24,14 +24,16 @@ public partial class Companion {
   Grid.SetRow(tabs,1);body.Children.Add(tabs);
   sectionDialogLayer.PreviewMouseWheel+=ScrollMainWheel;root.SizeChanged+=(s,e)=>SizeSectionDialog();SizeSectionDialog();
   PreviewKeyDown+=(s,e)=>{if(sectionDialogOpen&&e.Key==Key.Escape){e.Handled=true;CloseSectionDialog();}};
-  Deactivated+=(s,e)=>CloseSectionDialog(false);
-  IsVisibleChanged+=(s,e)=>{if(!IsVisible)CloseSectionDialog(false,true);};
+  Deactivated+=(s,e)=>{if(!workspaceInstalled)CloseSectionDialog(false);};
+  IsVisibleChanged+=(s,e)=>{if(!IsVisible&&!workspaceInstalled)CloseSectionDialog(false,true);};
  }
  void SizeSectionDialog(){
+  if(workspaceInstalled)return;
   if(sectionDialogSurface==null)return;double width=root.ActualWidth>0?root.ActualWidth:Width,height=root.ActualHeight>0?root.ActualHeight:Height;
   sectionDialogSurface.Width=Math.Max(1,Math.Min(680,width-32));sectionDialogSurface.Height=Math.Max(1,Math.Min(760,height-32));
  }
  void OpenSectionDialog(int section){
+  if(workspaceInstalled){OpenWorkspaceSection(section);return;}
   if(section<0||section>=tabs.Items.Count)return;CloseCardGames();CloseHelp();CloseArcade();if(compact)SetCompact(false);if(designing)ShowDesign();if(sectionReorderEditing)SetSectionReorder(false);
   tabs.SelectedIndex=section;tabs.Visibility=Visibility.Visible;sectionDialogTitle.Text=System.Windows.Automation.AutomationProperties.GetName(sectionButtons[section]);
   sectionDialogGeneration++;sectionDialogOpen=true;SizeSectionDialog();sectionDialogLayer.IsHitTestVisible=true;sectionDialogLayer.Visibility=Visibility.Visible;
@@ -40,6 +42,7 @@ public partial class Companion {
   sectionDialogBack.Focus();
  }
  void CloseSectionDialog(bool restoreFocus=true,bool immediate=false){
+  if(workspaceInstalled){CloseWorkspaceSection();return;}
   if(sectionDialogLayer==null)return;if(!sectionDialogOpen&&!immediate)return;
   sectionDialogOpen=false;int generation=++sectionDialogGeneration;sectionDialogLayer.IsHitTestVisible=false;
   if(immediate){sectionDialogLayer.BeginAnimation(UIElement.OpacityProperty,null);sectionDialogLayer.Visibility=Visibility.Collapsed;return;}

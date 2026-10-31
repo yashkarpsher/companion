@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
@@ -15,6 +15,9 @@ public partial class Companion {
  Path DashboardIcon(string name,double size=26){
   string drawing;
   switch(name){
+   case "grid":drawing="M 3,3 L 10,3 L 10,10 L 3,10 Z M 14,3 L 21,3 L 21,10 L 14,10 Z M 3,14 L 10,14 L 10,21 L 3,21 Z M 14,14 L 21,14 L 21,21 L 14,21 Z";break;
+   case "game":drawing="M 6,7 L 18,7 Q 21,7 22,17 Q 22,22 17,18 L 7,18 Q 2,22 2,17 Q 3,7 6,7 M 5,12 L 11,12 M 8,9 L 8,15 M 16,11 L 16.1,11 M 19,14 L 19.1,14";break;
+   case "settings":drawing="M 4,6 L 20,6 M 4,12 L 20,12 M 4,18 L 20,18 M 8,3 L 8,9 M 16,9 L 16,15 M 10,15 L 10,21";break;
    case "clock":drawing="M 12,2 A 10,10 0 1 1 11.99,2 M 12,6 L 12,12 L 17,14";break;
    case "check":drawing="M 5,3 L 19,3 Q 21,3 21,5 L 21,19 Q 21,21 19,21 L 5,21 Q 3,21 3,19 L 3,5 Q 3,3 5,3 M 7,12 L 10,15 L 17,8";break;
    case "notes":drawing="M 6,2 L 18,2 Q 21,2 21,5 L 21,19 Q 21,22 18,22 L 6,22 Q 3,22 3,19 L 3,5 Q 3,2 6,2 M 7,8 L 17,8 M 7,12 L 17,12 M 7,16 L 13,16";break;
@@ -30,7 +33,7 @@ public partial class Companion {
  }
  void BuildDashboard(){
   using(var stream=Assembly.GetExecutingAssembly().GetManifestResourceStream("CompanionTheme"))Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(stream));
-  Width=Math.Min(800,SystemParameters.WorkArea.Width-40);Height=Math.Min(1030,SystemParameters.WorkArea.Height-40);normalWidth=Width;normalHeight=Height;
+  Width=Math.Min(1180,SystemParameters.WorkArea.Width-40);Height=Math.Min(850,SystemParameters.WorkArea.Height-40);normalWidth=Width;normalHeight=Height;
   frame=new Border{CornerRadius=new CornerRadius(18),BorderThickness=new Thickness(1.5),ClipToBounds=true};Resource(frame,Border.BackgroundProperty,"Bg");Resource(frame,Border.BorderBrushProperty,"Line");Content=frame;frame.Child=root;root.Children.Add(wallpaper);
   normalLayout=new Grid{Margin=new Thickness(26,16,26,14)};root.Children.Add(normalLayout);for(int i=0;i<4;i++)normalLayout.RowDefinitions.Add(new RowDefinition{Height=i==2?new GridLength(1,GridUnitType.Star):GridLength.Auto});
   var header=new Grid{MinHeight=48};header.ColumnDefinitions.Add(new ColumnDefinition());header.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
@@ -48,7 +51,7 @@ public partial class Companion {
   TimerTab();TasksTab();NotesTab();FinanceTab();CalculatorTab();BrowserTab();DesignTab();BuildSectionTiles();tabs.SelectedIndex=0;
   tabs.SelectionChanged+=(s,e)=>{if(e.Source!=tabs)return;UpdateSectionTiles();if(!designing)hero.Visibility=Visibility.Visible;var item=tabs.SelectedItem as TabItem;var body=item==null?null:item.Content as UIElement;if(body!=null){body.Opacity=.6;Animate(body,1,180);}};
   feedback=Text("Готов к работе",12,"Muted");feedback.Margin=new Thickness(9,0,0,0);feedback.VerticalAlignment=VerticalAlignment.Center;var ready=new Ellipse{Width=10,Height=10,Fill=Brush("#36D17A"),VerticalAlignment=VerticalAlignment.Center};var footer=new Border{Child=Row(ready,feedback),BorderThickness=new Thickness(0,1,0,0),Padding=new Thickness(0,12,0,0),Margin=new Thickness(0,12,0,0)};Resource(footer,Border.BorderBrushProperty,"Line");Grid.SetRow(footer,3);normalLayout.Children.Add(footer);
-  BuildMini();InstallMainScrolling();BuildSectionDialog();BuildArcade();BuildCardGames();BuildPigGame();BuildGameOrderControls();BuildHelp();UpdateSectionTiles();CompanionWindowDrag.Attach(this,()=>gameInputLocked);
+  BuildMini();InstallMainScrolling();BuildSectionDialog();BuildArcade();BuildCardGames();BuildPigGame();BuildGameOrderControls();InstallGameCovers();BuildHelp();UpdateSectionTiles();InstallWorkspaceShell();CompanionWindowDrag.Attach(this,()=>gameInputLocked);
  }
  void BuildSectionTiles(){
   BuildSectionOrderControls();sectionTiles=new UniformGrid{Columns=3,Margin=new Thickness(0,0,-12,12)};hero.Children.Add(sectionTiles);
@@ -61,8 +64,8 @@ public partial class Companion {
   }
   ApplySectionOrder();sectionTiles.SizeChanged+=(s,e)=>UpdateDashboardLayout();
  }
- void UpdateSectionTiles(){for(int i=0;i<sectionButtons.Count;i++){bool active=tabs.SelectedIndex==i;Resource(sectionButtons[i],Control.BackgroundProperty,active?"TileSelected":"TileFill");bool target=sectionReorderDragging&&sectionButtons[i]==sectionReorderTarget;Resource(sectionButtons[i],Control.BorderBrushProperty,active||target?"Accent":"Line");sectionButtons[i].BorderThickness=new Thickness(active||target?2:1);sectionIndicators[i].Visibility=active?Visibility.Visible:Visibility.Collapsed;}}
- void UpdateDashboardLayout(){if(sectionTiles==null)return;double width=normalLayout.ActualWidth>0?normalLayout.ActualWidth:Width-56;int columns=width>=590?3:width>=315?2:1;if(sectionTiles.Columns!=columns)sectionTiles.Columns=columns;if(arcadeTiles!=null)arcadeTiles.Columns=width>=440?2:1;}
+ void UpdateSectionTiles(){for(int i=0;i<sectionButtons.Count;i++){bool active=tabs.SelectedIndex==i;Resource(sectionButtons[i],Control.BackgroundProperty,active?"TileSelected":"TileFill");bool target=sectionReorderDragging&&sectionButtons[i]==sectionReorderTarget;Resource(sectionButtons[i],Control.BorderBrushProperty,active||target?"Accent":"Line");sectionButtons[i].BorderThickness=new Thickness(active||target?2:1);sectionIndicators[i].Visibility=active?Visibility.Visible:Visibility.Collapsed;}UpdateWorkspaceNav();}
+ void UpdateDashboardLayout(){if(sectionTiles==null)return;double width=workspaceInstalled?Math.Max(1,workspaceContent.ActualWidth-20):(normalLayout.ActualWidth>0?normalLayout.ActualWidth:Width-56);int columns=width>=590?3:width>=315?2:1;if(sectionTiles.Columns!=columns)sectionTiles.Columns=columns;if(arcadeTiles!=null)arcadeTiles.Columns=width>=440?2:1;}
  void DashboardColors(){Color panel=((SolidColorBrush)Resources["Panel"]).Color,accent=((SolidColorBrush)Resources["Accent"]).Color;Color top=Mix(panel,Colors.White,.025);top.A=panel.A;Color selected=Mix(panel,accent,.20);selected.A=panel.A;Resources["TileFill"]=new LinearGradientBrush(top,panel,new Point(0,0),new Point(1,1));Resources["TileSelected"]=new LinearGradientBrush(selected,panel,new Point(0,0),new Point(1,1));}
 }
 
