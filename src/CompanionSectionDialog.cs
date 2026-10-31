@@ -32,7 +32,7 @@ public partial class Companion {
   sectionDialogSurface.Width=Math.Max(1,Math.Min(680,width-32));sectionDialogSurface.Height=Math.Max(1,Math.Min(760,height-32));
  }
  void OpenSectionDialog(int section){
-  if(section<0||section>=tabs.Items.Count)return;CloseHelp();CloseArcade();if(compact)SetCompact(false);if(designing)ShowDesign();if(sectionReorderEditing)SetSectionReorder(false);
+  if(section<0||section>=tabs.Items.Count)return;CloseCardGames();CloseHelp();CloseArcade();if(compact)SetCompact(false);if(designing)ShowDesign();if(sectionReorderEditing)SetSectionReorder(false);
   tabs.SelectedIndex=section;tabs.Visibility=Visibility.Visible;sectionDialogTitle.Text=System.Windows.Automation.AutomationProperties.GetName(sectionButtons[section]);
   sectionDialogGeneration++;sectionDialogOpen=true;SizeSectionDialog();sectionDialogLayer.IsHitTestVisible=true;sectionDialogLayer.Visibility=Visibility.Visible;
   sectionDialogLayer.BeginAnimation(UIElement.OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(200)));

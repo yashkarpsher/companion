@@ -48,7 +48,7 @@ public partial class Companion {
   TimerTab();TasksTab();NotesTab();FinanceTab();CalculatorTab();BrowserTab();DesignTab();BuildSectionTiles();tabs.SelectedIndex=0;
   tabs.SelectionChanged+=(s,e)=>{if(e.Source!=tabs)return;UpdateSectionTiles();if(!designing)hero.Visibility=Visibility.Visible;var item=tabs.SelectedItem as TabItem;var body=item==null?null:item.Content as UIElement;if(body!=null){body.Opacity=.6;Animate(body,1,180);}};
   feedback=Text("Готов к работе",12,"Muted");feedback.Margin=new Thickness(9,0,0,0);feedback.VerticalAlignment=VerticalAlignment.Center;var ready=new Ellipse{Width=10,Height=10,Fill=Brush("#36D17A"),VerticalAlignment=VerticalAlignment.Center};var footer=new Border{Child=Row(ready,feedback),BorderThickness=new Thickness(0,1,0,0),Padding=new Thickness(0,12,0,0),Margin=new Thickness(0,12,0,0)};Resource(footer,Border.BorderBrushProperty,"Line");Grid.SetRow(footer,3);normalLayout.Children.Add(footer);
-  BuildMini();InstallMainScrolling();BuildSectionDialog();BuildArcade();BuildHelp();UpdateSectionTiles();CompanionWindowDrag.Attach(this,()=>gameInputLocked);
+  BuildMini();InstallMainScrolling();BuildSectionDialog();BuildArcade();BuildCardGames();BuildHelp();UpdateSectionTiles();CompanionWindowDrag.Attach(this,()=>gameInputLocked);
  }
  void BuildSectionTiles(){
   BuildSectionOrderControls();sectionTiles=new UniformGrid{Columns=3,Margin=new Thickness(0,0,-12,12)};hero.Children.Add(sectionTiles);

@@ -101,7 +101,7 @@ public partial class Companion {
   if(mainInputGate==null)mainInputGate=new CompanionInputGate(this);
   try{
    foreach(var widget in widgets)widget.InputLocked=locked;mainInputGate.Locked=locked;if(browserWindow!=null)browserWindow.InputLocked=locked;if(noticeInputGate!=null)noticeInputGate.Locked=locked;
-   gameInputLocked=locked;if(locked){CloseHelp();SuspendArcade();HideMiniDock(true);if(lastExternalWindow!=IntPtr.Zero&&IsWindow(lastExternalWindow))SetForegroundWindow(lastExternalWindow);}
+   gameInputLocked=locked;if(locked){CloseCardGames();CloseHelp();SuspendArcade();HideMiniDock(true);if(lastExternalWindow!=IntPtr.Zero&&IsWindow(lastExternalWindow))SetForegroundWindow(lastExternalWindow);}
   }catch{foreach(var widget in widgets)widget.InputLocked=false;mainInputGate.Locked=false;if(browserWindow!=null)browserWindow.InputLocked=false;if(noticeInputGate!=null)noticeInputGate.Locked=false;gameInputLocked=false;throw;}
   UpdateOverlayHelp();
  }

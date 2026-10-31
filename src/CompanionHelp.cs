@@ -27,7 +27,7 @@ public partial class Companion {
   Loaded+=(s,e)=>Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle,(Action)(()=>{if(!data.TutorialSeen&&IsVisible&&!startupSplashPending)OpenTutorial();}));
  }
  void SizeHelp(){if(helpSurface==null)return;helpSurface.Width=Math.Max(1,Math.Min(740,(root.ActualWidth>0?root.ActualWidth:Width)-24));helpSurface.Height=Math.Max(1,Math.Min(helpTutorial?760:780,(root.ActualHeight>0?root.ActualHeight:Height)-24));}
- void ShowHelp(){
+ void ShowHelp(){CloseCardGames();
   if(compact)SetCompact(false);CloseSectionDialog(false,true);CloseArcade();helpOpen=true;helpGeneration++;SizeHelp();helpLayer.Visibility=Visibility.Visible;helpLayer.IsHitTestVisible=true;helpLayer.BeginAnimation(OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(180)));var shift=new TranslateTransform(0,8);helpSurface.RenderTransform=shift;shift.BeginAnimation(TranslateTransform.YProperty,new DoubleAnimation(0,TimeSpan.FromMilliseconds(180)){EasingFunction=new CubicEase{EasingMode=EasingMode.EaseOut}});helpNext.Focus();
  }
  void OpenTutorial(){helpTutorial=true;helpIndex=0;RenderHelpStep();ShowHelp();}
