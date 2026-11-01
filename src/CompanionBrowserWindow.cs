@@ -18,7 +18,7 @@ using Microsoft.Web.WebView2.Wpf;
 
 public partial class CompanionBrowserWindow : Window {
  sealed class BrowserPage {
-  public WebView2CompositionControl View;public string Pending,Url,Title="Новая вкладка";public bool Ready,Loading,Closed,Succeeded;
+  public WebView2CompositionControl View;public string Pending,Url,Title="Новая вкладка";public bool Ready,Loading,Closed,Succeeded,FullScreen;
   public Border Tab;public TextBlock Caption;
  }
  readonly List<BrowserPage> pages=new List<BrowserPage>();BrowserPage current;
@@ -36,13 +36,15 @@ public partial class CompanionBrowserWindow : Window {
  readonly CompanionInputGate inputGate;
  readonly DispatcherTimer hoverRefresh=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(120)},audioRefresh=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(500)},volumeSave=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(350)};
  readonly StackPanel navButtons,navActions;
- Window controlsWindow;Grid floatingControls;DateTime lastControlsHover;
+ Window controlsWindow;Grid floatingControls;DateTime lastControlsHover;Button compactMenuButton;bool draggingBrowser;
+ Popup addressPopup;bool UseExternalChrome {get{return (ActualWidth>0?ActualWidth:Width)<720||(ActualHeight>0?ActualHeight:Height)<500;}}
+ FrameworkElement browserDragGrip;Point dragScreenStart,dragWindowStart;Matrix dragFromDevice;Border moveHandle;
  CoreWebView2Environment browserEnvironment;Task<CoreWebView2Environment> environmentTask;
  bool disposed,viewMode,muted,backgroundPlayback=true;
  public string HomeProvider {get;set;}
  public event Action RequestGameMode;public event Action<double> VolumeChanged;
  public double Volume {get{return volumeSlider.Value;}set{volumeSlider.Value=CompanionBrowserAudio.Normalize(value);}}
- public bool InputLocked {get{return inputGate.Locked;}set{if(value){if(controlsWindow!=null)controlsWindow.Hide();if(menuButton.ContextMenu!=null)menuButton.ContextMenu.IsOpen=false;CloseLibrary();}inputGate.Locked=value;}}
+ public bool InputLocked {get{return inputGate.Locked;}set{if(value){EndBrowserDrag();if(controlsWindow!=null)controlsWindow.Hide();if(menuButton.ContextMenu!=null)menuButton.ContextMenu.IsOpen=false;if(compactMenuButton!=null&&compactMenuButton.ContextMenu!=null)compactMenuButton.ContextMenu.IsOpen=false;CloseLibrary();}if(value){if(addressPopup!=null)addressPopup.IsOpen=false;}inputGate.Locked=value;}}
  public bool BackgroundPlayback {get{return backgroundPlayback;}set{backgroundPlayback=value;ApplyBackgroundPlayback();}}
  public static string HomeUrl(string provider){return provider=="yandex"?"https://ya.ru/":"https://www.google.com/";}
  public static string ResolveAddress(string text,string provider){
@@ -81,27 +83,39 @@ public partial class CompanionBrowserWindow : Window {
   bar=new Border{Child=navigation,Margin=new Thickness(10,4,10,10)};bar.Tag=addressFrame;Grid.SetRow(bar,1);layout.Children.Add(bar);
   pageFrame=new Border{CornerRadius=new CornerRadius(16),BorderThickness=new Thickness(1),Margin=new Thickness(8,0,8,0),Child=pageHost};pageFrame.SetResourceReference(Border.BackgroundProperty,"Bg");pageFrame.SetResourceReference(Border.BorderBrushProperty,"Line");pageHost.SizeChanged+=(s,e)=>{pageHost.Clip=new RectangleGeometry(new Rect(0,0,Math.Max(0,pageHost.ActualWidth),Math.Max(0,pageHost.ActualHeight)),viewMode?0:15,viewMode?0:15);if(libraryPanel!=null)libraryPanel.MaxWidth=Math.Max(1,pageHost.ActualWidth-16);};Grid.SetRow(pageFrame,2);layout.Children.Add(pageFrame);
   var footer=new DockPanel{Margin=new Thickness(16,10,16,10)};footerHint=Text("F11 - просмотр    ·    Ctrl+L - адрес",10,"Muted");DockPanel.SetDock(footerHint,Dock.Right);footer.Children.Add(footerHint);status=Text("Запускаем браузер…",11,"Muted");status.TextTrimming=TextTrimming.CharacterEllipsis;footer.Children.Add(status);footer.MouseLeftButtonDown+=DragHeader;Grid.SetRow(footer,3);layout.Children.Add(footer);
-  AddPage(null);UpdatePin();UpdateVolume();UpdateLayoutSize();SizeChanged+=(s,e)=>UpdateLayoutSize();
+  AddPage(null);UpdatePin();UpdateVolume();UpdateLayoutSize();SizeChanged+=(s,e)=>{UpdateLayoutSize();SyncFloatingControls();};LocationChanged+=(s,e)=>SyncFloatingControls();
   volumeSlider.ValueChanged+=(s,e)=>{if(e.NewValue>0)muted=false;UpdateVolume();volumeSave.Stop();volumeSave.Start();};audioRefresh.Tick+=(s,e)=>ApplyVolume();volumeSave.Tick+=(s,e)=>SaveVolume();hoverRefresh.Tick+=(s,e)=>UpdateHoverControls();
   Loaded+=(s,e)=>{foreach(var page in pages.ToArray())Initialize(page);hoverRefresh.Start();if(library.Warning!=null)status.Text=library.Warning;};
-  Closed+=(s,e)=>{disposed=true;audioRefresh.Stop();hoverRefresh.Stop();if(controlsWindow!=null)controlsWindow.Close();SaveVolume();foreach(var page in pages){page.Closed=true;page.View.Dispose();}pages.Clear();};Deactivated+=(s,e)=>ApplyBackgroundPlayback();PreviewKeyDown+=HandleKeys;
+  Closed+=(s,e)=>{disposed=true;EndBrowserDrag();if(addressPopup!=null)addressPopup.IsOpen=false;audioRefresh.Stop();hoverRefresh.Stop();if(controlsWindow!=null)controlsWindow.Close();SaveVolume();foreach(var page in pages){page.Closed=true;page.View.Dispose();}pages.Clear();};Deactivated+=(s,e)=>ApplyBackgroundPlayback();PreviewKeyDown+=HandleKeys;PreviewMouseMove+=(s,e)=>{if(viewMode)UpdateHoverControls();};MouseEnter+=(s,e)=>{if(viewMode)UpdateHoverControls();};
  }
  void UpdateLayoutSize(){
   double width=ActualWidth>0?ActualWidth:Width;brandText.Visibility=width<1000?Visibility.Collapsed:Visibility.Visible;volumeLabel.Visibility=width<850?Visibility.Collapsed:Visibility.Visible;mute.Visibility=width<560?Visibility.Collapsed:Visibility.Visible;pin.Visibility=cinema.Visibility=maximize.Visibility=width<560?Visibility.Collapsed:Visibility.Visible;volumeSlider.Width=width<560?55:82;footerHint.Visibility=width<650?Visibility.Collapsed:Visibility.Visible;
   var frame=(Border)bar.Tag;bool small=width<640;Grid.SetRow(frame,small?1:0);Grid.SetColumn(frame,small?0:1);Grid.SetColumnSpan(frame,small?3:1);frame.Margin=new Thickness(small?0:8,small?6:0,small?0:8,0);Grid.SetColumn(navActions,2);Grid.SetRow(navActions,0);navActions.HorizontalAlignment=HorizontalAlignment.Right;
   foreach(var page in pages)page.Tab.Width=width<440?90:width<560?105:width<850?135:180;
   if(libraryPanel!=null)libraryPanel.MaxWidth=Math.Max(1,pageHost.ActualWidth-16);
+  if(UseExternalChrome&&!viewMode)SetViewMode(true);
  }
- void DragHeader(object sender,MouseButtonEventArgs e){if(e.Handled||e.ChangedButton!=MouseButton.Left)return;DependencyObject node=e.OriginalSource as DependencyObject;while(node!=null&&node!=sender){if(node is ButtonBase||node is TextBox||node is Slider||node is ScrollBar||node is Thumb)return;node=node is Visual?VisualTreeHelper.GetParent(node):LogicalTreeHelper.GetParent(node);}if(e.ClickCount==2)ToggleMaximize();else try{DragMove();}catch(InvalidOperationException){} }
+ void DragHeader(object sender,MouseButtonEventArgs e){if(e.Handled||e.ChangedButton!=MouseButton.Left)return;DependencyObject node=e.OriginalSource as DependencyObject;while(node!=null&&node!=sender){if(node is ButtonBase||node is TextBox||node is Slider||node is ScrollBar||node is Thumb)return;node=node is Visual?VisualTreeHelper.GetParent(node):LogicalTreeHelper.GetParent(node);}if(e.ClickCount==2)ToggleMaximize();else {CursorPoint cursor;if(GetCursorPos(out cursor))BeginBrowserDrag((FrameworkElement)sender,new Point(cursor.X,cursor.Y));}e.Handled=true;}
+ void BeginBrowserDrag(FrameworkElement grip,Point screen){
+  if(InputLocked||disposed)return;EndBrowserDrag();if(WindowState!=WindowState.Normal)WindowState=WindowState.Normal;
+  var source=PresentationSource.FromVisual(this);dragFromDevice=source==null?Matrix.Identity:source.CompositionTarget.TransformFromDevice;dragScreenStart=screen;dragWindowStart=new Point(Left,Top);browserDragGrip=grip;draggingBrowser=grip.CaptureMouse();if(!draggingBrowser){browserDragGrip=null;return;}
+  grip.PreviewMouseMove+=BrowserDragMove;grip.PreviewMouseLeftButtonUp+=BrowserDragUp;grip.LostMouseCapture+=BrowserDragLost;
+ }
+ void BrowserDragMove(object sender,MouseEventArgs e){if(e.LeftButton!=MouseButtonState.Pressed){EndBrowserDrag();return;}CursorPoint cursor;if(GetCursorPos(out cursor))MoveBrowserDrag(new Point(cursor.X,cursor.Y));e.Handled=true;}
+ void MoveBrowserDrag(Point screen){if(!draggingBrowser)return;Vector delta=dragFromDevice.Transform(screen-dragScreenStart);Left=dragWindowStart.X+delta.X;Top=dragWindowStart.Y+delta.Y;lastControlsHover=DateTime.UtcNow;SyncFloatingControls();}
+ void BrowserDragUp(object sender,MouseButtonEventArgs e){EndBrowserDrag();e.Handled=true;}
+ void BrowserDragLost(object sender,MouseEventArgs e){EndBrowserDrag();}
+ void EndBrowserDrag(){var grip=browserDragGrip;browserDragGrip=null;draggingBrowser=false;if(grip==null)return;grip.PreviewMouseMove-=BrowserDragMove;grip.PreviewMouseLeftButtonUp-=BrowserDragUp;grip.LostMouseCapture-=BrowserDragLost;if(grip.IsMouseCaptured)grip.ReleaseMouseCapture();lastControlsHover=DateTime.UtcNow;SyncFloatingControls();}
  void ToggleMaximize(){WindowState=WindowState==WindowState.Maximized?WindowState.Normal:WindowState.Maximized;}
  void ToggleMute(){bool enable=muted||Volume==0;if(enable&&Volume==0)Volume=60;muted=!enable;UpdateVolume();}
  void UpdatePin(){pin.Opacity=Topmost?1:.5;pin.ToolTip=BrowserHint(Topmost?"Открепить окно":"Поверх остальных окон");if(status!=null&&(current==null||!current.Loading))status.Text=Topmost?"Поверх игры":"Браузер";}
  void HandleKeys(object sender,KeyEventArgs e){
   bool ctrl=(Keyboard.Modifiers&ModifierKeys.Control)!=0,shift=(Keyboard.Modifiers&ModifierKeys.Shift)!=0;
   if(e.Key==Key.Escape&&libraryLayer!=null){CloseLibrary();e.Handled=true;}
+  else if(e.Key==Key.Escape&&current!=null&&current.FullScreen){return;}
   else if(e.Key==Key.Escape&&viewMode){SetViewMode(false);e.Handled=true;}
   else if(e.Key==Key.F11){SetViewMode(!viewMode);e.Handled=true;}
-  else if(ctrl&&e.Key==Key.L){SetViewMode(false);CloseLibrary();address.Focus();address.SelectAll();e.Handled=true;}
+  else if(ctrl&&e.Key==Key.L){FocusAddress();e.Handled=true;}
   else if(ctrl&&e.Key==Key.H){ShowLibrary(true);e.Handled=true;}
   else if(ctrl&&shift&&e.Key==Key.O){ShowLibrary(false);e.Handled=true;}
   else if(ctrl&&e.Key==Key.D){ToggleBookmark();e.Handled=true;}
@@ -121,7 +135,7 @@ public partial class CompanionBrowserWindow : Window {
  void SelectPage(BrowserPage page){
   if(page==null||page.Closed)return;CloseLibrary();current=page;
   foreach(var item in pages){item.View.Visibility=item==page?Visibility.Visible:Visibility.Collapsed;item.Tab.SetResourceReference(Border.BackgroundProperty,item==page?"SelectedTab":"NavBg");item.Tab.SetResourceReference(Border.BorderBrushProperty,item==page?"Line":"NavBg");}
-  RefreshPage();page.Tab.BringIntoView();ScrollCurrentTab();
+  if(page.FullScreen)SetViewMode(true);RefreshPage();page.Tab.BringIntoView();ScrollCurrentTab();
  }
  void MoveTabs(double offset){if(tabViewport==null)return;tabOffset=Math.Max(0,Math.Min(offset,Math.Max(0,pages.Sum(x=>x.Tab.Width+4)-tabViewport.ActualWidth)));tabShift.X=-tabOffset;}
  void ScrollCurrentTab(){if(current==null||tabViewport==null||tabViewport.ActualWidth<=0)return;double left=pages.TakeWhile(x=>x!=current).Sum(x=>x.Tab.Width+4),right=left+current.Tab.Width+4,offset=tabOffset;if(left<offset)offset=left;else if(right>offset+tabViewport.ActualWidth)offset=Math.Max(0,right-tabViewport.ActualWidth);MoveTabs(offset);}
@@ -139,11 +153,16 @@ public partial class CompanionBrowserWindow : Window {
    core.NavigationCompleted+=async(s,e)=>{if(page.Closed)return;page.Loading=false;page.Succeeded=e.IsSuccess;if(page==current){RefreshPage();if(!e.IsSuccess)status.Text="Не удалось открыть страницу: "+e.WebErrorStatus;}if(e.IsSuccess){page.Url=core.Source;page.Title=PageTitle(core.DocumentTitle,page.Url);page.Caption.Text=page.Title;LibraryAction(()=>library.Visit(page.Url,page.Title));if(!library.Data.RecordHistory)await ClearEngineHistory();}ApplyBackgroundPlayback();};
    core.DocumentTitleChanged+=(s,e)=>{if(page.Closed)return;page.Title=PageTitle(core.DocumentTitle,core.Source);page.Caption.Text=page.Title;page.Tab.ToolTip=BrowserHint(page.Title);if(page==current)Title="Companion · "+page.Title;if(page.Succeeded)LibraryAction(()=>library.UpdateTitle(page.Url,page.Title));};
    core.NewWindowRequested+=(s,e)=>{e.Handled=true;if(e.IsUserInitiated)Dispatcher.BeginInvoke((Action)(()=>{if(!disposed)AddPage(e.Uri);}));};
-   core.ContainsFullScreenElementChanged+=(s,e)=>{if(page==current)SetViewMode(core.ContainsFullScreenElement);};core.ProcessFailed+=(s,e)=>{if(page==current)status.Text="Процесс браузера остановлен. Закрой вкладку и открой её снова.";};
+   core.ContainsFullScreenElementChanged+=(s,e)=>PageFullScreenChanged(page,core.ContainsFullScreenElement);core.ProcessFailed+=(s,e)=>{if(page==current)status.Text="Процесс браузера остановлен. Закрой вкладку и открой её снова.";};
    browserEnvironment=environment;page.Ready=true;if(library.Data.EngineHistoryClearPending||!library.Data.RecordHistory)await ClearEngineHistory();await ConfigureBackgroundPlaybackAsync(page);if(disposed||page.Closed)return;UpdateVolume();audioRefresh.Start();string target=page.Pending??HomeUrl(HomeProvider);page.Pending=null;page.Url=target;core.Navigate(target);
   }catch(WebView2RuntimeNotFoundException){if(!disposed)status.Text="Нужен Microsoft Edge WebView2 Runtime. Установи его с сайта Microsoft и открой браузер снова.";environmentTask=null;}
   catch(Exception error){if(!disposed&&!page.Closed)status.Text="Не удалось запустить браузер: "+error.Message;environmentTask=null;}
   finally{if(!page.Ready)page.Loading=false;}
+ }
+ void PageFullScreenChanged(BrowserPage page,bool active){
+  if(page.Closed||disposed)return;page.FullScreen=active;
+  // Leaving a video's fullscreen does not restore the large browser chrome.
+  if(page==current&&active)SetViewMode(true);
  }
  static string PageTitle(string text,string url){if(!String.IsNullOrWhiteSpace(text))return text.Length>300?text.Substring(0,300):text;Uri uri;return Uri.TryCreate(url,UriKind.Absolute,out uri)?uri.Host:"Новая вкладка";}
  async void ApplyBackgroundPlayback(){foreach(var page in pages.ToArray())await ConfigureBackgroundPlaybackAsync(page);}
@@ -154,21 +173,58 @@ public partial class CompanionBrowserWindow : Window {
  void ApplyVolume(){if(disposed||browserEnvironment==null)return;try{CompanionBrowserAudio.Apply(browserEnvironment.GetProcessInfos().Select(info=>info.ProcessId),Volume);}catch(COMException){}catch(InvalidOperationException){}}
  public bool OwnsWindow(IntPtr hwnd){return hwnd==new System.Windows.Interop.WindowInteropHelper(this).Handle||(controlsWindow!=null&&hwnd==new System.Windows.Interop.WindowInteropHelper(controlsWindow).Handle);}
  void EnsureFloatingControls(){
-  if(controlsWindow!=null)return;if(floatingControls==null){floatingControls=new Grid();floatingControls.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});floatingControls.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});}if(new System.Windows.Interop.WindowInteropHelper(this).Handle==IntPtr.Zero)return;
-  var border=new Border{Padding=new Thickness(3),CornerRadius=new CornerRadius(14),BorderThickness=new Thickness(1),Child=floatingControls};border.SetResourceReference(Border.BackgroundProperty,"DockBg");border.SetResourceReference(Border.BorderBrushProperty,"Line");controlsWindow=new Window{Title="Companion · Панель браузера",Owner=this,WindowStyle=WindowStyle.None,AllowsTransparency=true,Background=Brushes.Transparent,ShowInTaskbar=false,ShowActivated=false,ResizeMode=ResizeMode.NoResize,SizeToContent=SizeToContent.Height,Resources=Resources,Content=border};controlsWindow.PreviewKeyDown+=HandleKeys;
+  if(floatingControls==null){
+   floatingControls=new Grid();var row=new StackPanel{Orientation=Orientation.Horizontal};
+   Action<string,Action,string> add=(icon,action,hint)=>{var b=IconButton(icon,action,hint);b.Width=30;b.Height=32;b.Margin=new Thickness(1);row.Children.Add(b);};
+   add("back",()=>{if(current.Ready&&current.View.CanGoBack)current.View.GoBack();},"Назад");add("forward",()=>{if(current.Ready&&current.View.CanGoForward)current.View.GoForward();},"Вперёд");add("reload",()=>{if(current.Ready)current.View.Reload();else Initialize(current);},"Обновить");
+   var slider=new Slider{Minimum=0,Maximum=100,Width=58,Margin=new Thickness(4,0,6,0),VerticalAlignment=VerticalAlignment.Center,IsMoveToPointEnabled=true,ToolTip=BrowserHint("Громкость браузера")};slider.SetResourceReference(FrameworkElement.StyleProperty,"BrowserVolumeSlider");slider.SetBinding(Slider.ValueProperty,new System.Windows.Data.Binding("Value"){Source=volumeSlider,Mode=System.Windows.Data.BindingMode.TwoWay});System.Windows.Automation.AutomationProperties.SetName(slider,"Громкость браузера, процентов");row.Children.Add(slider);
+   var moveLabel=Text("✥  Переместить",12,"Text");moveLabel.TextAlignment=TextAlignment.Center;moveLabel.FontWeight=FontWeights.SemiBold;moveHandle=new Border{Width=106,Height=32,CornerRadius=new CornerRadius(8),Margin=new Thickness(3,0,3,0),Child=moveLabel,Cursor=Cursors.SizeAll,ToolTip=BrowserHint("Зажми и перетащи браузер. Размер окна сохранится у края экрана")};moveHandle.SetResourceReference(Border.BackgroundProperty,"Field");System.Windows.Automation.AutomationProperties.SetName(moveHandle,"Переместить браузер");moveHandle.MouseLeftButtonDown+=DragHeader;row.Children.Add(moveHandle);
+   add("globe",FocusAddress,"Ввести адрес (Ctrl+L)");add("game",()=>{if(RequestGameMode!=null)RequestGameMode();},"Передать управление игре");add("cinema",()=>{if(UseExternalChrome)ToggleMaximize();else SetViewMode(false);},"Развернуть окно / вернуть панели (F11)");
+   compactMenuButton=IconButton("menu",()=>OpenMenuAt(compactMenuButton),"Меню браузера");compactMenuButton.Width=30;compactMenuButton.Height=32;compactMenuButton.Margin=new Thickness(1);row.Children.Add(compactMenuButton);add("close",Close,"Закрыть браузер");
+   row.MouseLeftButtonDown+=DragHeader;floatingControls.Children.Add(new Viewbox{Child=row,Stretch=Stretch.Uniform,StretchDirection=StretchDirection.DownOnly});UpdateVolume();
+  }
+  if(controlsWindow!=null||new System.Windows.Interop.WindowInteropHelper(this).Handle==IntPtr.Zero)return;
+  var border=new Border{Padding=new Thickness(5),CornerRadius=new CornerRadius(14),BorderThickness=new Thickness(1),Child=floatingControls};border.SetResourceReference(Border.BackgroundProperty,"DockBg");border.SetResourceReference(Border.BorderBrushProperty,"Line");controlsWindow=new Window{Title="Companion · Панель браузера",Owner=this,WindowStyle=WindowStyle.None,AllowsTransparency=true,Background=Brushes.Transparent,ShowInTaskbar=false,ShowActivated=false,ResizeMode=ResizeMode.NoResize,Width=382,Height=46,Resources=Resources,Content=border};controlsWindow.PreviewKeyDown+=HandleKeys;controlsWindow.PreviewMouseMove+=(s,e)=>UpdateHoverControls();
  }
+ void FocusAddress(){
+  CloseLibrary();if(!viewMode){address.Focus();address.SelectAll();return;}
+  if(addressPopup!=null)addressPopup.IsOpen=false;
+  var field=new TextBox{Text=current==null?"":current.Url,MaxLength=8192,Padding=new Thickness(8),FontSize=13,MinWidth=50};field.SetResourceReference(Control.BackgroundProperty,"Field");field.SetResourceReference(Control.ForegroundProperty,"Text");field.SetResourceReference(Control.BorderBrushProperty,"Line");System.Windows.Automation.AutomationProperties.SetName(field,"Адрес сайта или поиск");
+  var body=new DockPanel();var go=TextButton("→",()=>{addressPopup.IsOpen=false;Go(field.Text);},"Открыть адрес");DockPanel.SetDock(go,Dock.Right);body.Children.Add(go);body.Children.Add(field);
+  var border=new Border{Resources=Resources,Child=body,Width=Math.Max(220,Math.Min(440,ActualWidth-12)),Padding=new Thickness(6),CornerRadius=new CornerRadius(12),BorderThickness=new Thickness(1)};border.SetResourceReference(Border.BackgroundProperty,"DockBg");border.SetResourceReference(Border.BorderBrushProperty,"Line");
+  addressPopup=new Popup{Child=border,PlacementTarget=compactMenuButton,Placement=PlacementMode.Bottom,StaysOpen=false,AllowsTransparency=true,PopupAnimation=PopupAnimation.Fade};
+  field.KeyDown+=(s,e)=>{if(e.Key==Key.Enter){addressPopup.IsOpen=false;Go(field.Text);e.Handled=true;}else if(e.Key==Key.Escape){addressPopup.IsOpen=false;e.Handled=true;}};addressPopup.Opened+=(s,e)=>{field.Focus();field.SelectAll();};addressPopup.IsOpen=true;
+ }
+ public static Rect PlaceBrowserPanel(Rect browser,Rect work){
+  double width=Math.Min(440,Math.Min(browser.Width,work.Width)),height=Math.Min(46,work.Height),gap=6;
+  double y=browser.Top-height-gap;if(y<work.Top)y=browser.Bottom+gap;if(y+height>work.Bottom)y=Math.Max(work.Top,browser.Top+gap);
+  return new Rect(Math.Max(work.Left,Math.Min(work.Right-width,browser.Left+(browser.Width-width)/2)),Math.Max(work.Top,Math.Min(work.Bottom-height,y)),width,height);
+ }
+ Rect BrowserScreenBounds(){var origin=PointToScreen(new Point());var source=PresentationSource.FromVisual(this);if(source!=null)origin=source.CompositionTarget.TransformFromDevice.Transform(origin);return new Rect(origin,new Size(ActualWidth,ActualHeight));}
+ Rect BrowserWorkArea(){var handle=new System.Windows.Interop.WindowInteropHelper(this).Handle;var info=new BrowserMonitorInfo{Size=Marshal.SizeOf(typeof(BrowserMonitorInfo))};if(!GetMonitorInfo(MonitorFromWindow(handle,2),ref info))return SystemParameters.WorkArea;var source=PresentationSource.FromVisual(this);var matrix=source==null?Matrix.Identity:source.CompositionTarget.TransformFromDevice;return new Rect(matrix.Transform(new Point(info.Work.Left,info.Work.Top)),matrix.Transform(new Point(info.Work.Right,info.Work.Bottom)));}
  void UpdateHoverControls(){CursorPoint cursor;if(GetCursorPos(out cursor))UpdateHoverControls(new Point(cursor.X,cursor.Y));}
+ void SyncFloatingControls(){
+  if(!viewMode||controlsWindow==null||disposed||!IsVisible)return;
+  var fit=PlaceBrowserPanel(BrowserScreenBounds(),BrowserWorkArea());controlsWindow.Width=fit.Width;controlsWindow.Height=fit.Height;controlsWindow.Left=fit.Left;controlsWindow.Top=fit.Top;controlsWindow.Topmost=Topmost;
+ }
  void UpdateHoverControls(Point screen){
-  if(!viewMode||disposed||!IsVisible||InputLocked||WindowState==WindowState.Minimized){if(controlsWindow!=null)controlsWindow.Hide();return;}Point here=PointFromScreen(screen);bool inside=here.X>=0&&here.Y>=0&&here.X<ActualWidth&&here.Y<ActualHeight;bool edge=inside&&(here.X<10||here.Y<10||here.X>=ActualWidth-10||here.Y>=ActualHeight-10);bool over=false;
-  if(controlsWindow!=null&&controlsWindow.IsVisible){Point c=controlsWindow.PointFromScreen(screen);over=c.X>=0&&c.Y>=0&&c.X<controlsWindow.ActualWidth&&c.Y<controlsWindow.ActualHeight;}
-  if(edge||over){lastControlsHover=DateTime.UtcNow;EnsureFloatingControls();if(controlsWindow==null)return;controlsWindow.Width=ActualWidth;controlsWindow.Left=Left;controlsWindow.Top=Top;controlsWindow.Topmost=Topmost;if(!controlsWindow.IsVisible){controlsWindow.Show();controlsWindow.BeginAnimation(OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(160)));}}
-  else if(controlsWindow!=null&&controlsWindow.IsVisible&&(DateTime.UtcNow-lastControlsHover).TotalMilliseconds>900)controlsWindow.Hide();
+  if(!viewMode||disposed||!IsVisible||InputLocked||WindowState==WindowState.Minimized){if(controlsWindow!=null)controlsWindow.Hide();return;}Point here=PointFromScreen(screen);bool inside=here.X>=-6&&here.Y>=-6&&here.X<=ActualWidth+6&&here.Y<=ActualHeight+6;bool edge=inside&&(here.X<20||here.Y<20||here.X>=ActualWidth-20||here.Y>=ActualHeight-20);bool over=false;
+  if(controlsWindow!=null&&controlsWindow.IsVisible){var bounds=BrowserScreenBounds();var panel=new Rect(controlsWindow.Left,controlsWindow.Top,controlsWindow.Width,controlsWindow.Height);double y=panel.Top>=bounds.Bottom?bounds.Bottom-20:bounds.Top;var bridge=Rect.Union(panel,new Rect(panel.Left,y,panel.Width,20));bridge.Inflate(10,8);var source=PresentationSource.FromVisual(this);var point=source==null?screen:source.CompositionTarget.TransformFromDevice.Transform(screen);over=bridge.Contains(point)||draggingBrowser||(compactMenuButton.ContextMenu!=null&&compactMenuButton.ContextMenu.IsOpen);}
+  if(edge||over){lastControlsHover=DateTime.UtcNow;EnsureFloatingControls();if(controlsWindow==null)return;SyncFloatingControls();if(!controlsWindow.IsVisible){controlsWindow.Show();controlsWindow.BeginAnimation(OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(140)));}}
+  else if(controlsWindow!=null&&controlsWindow.IsVisible&&(DateTime.UtcNow-lastControlsHover).TotalMilliseconds>1400)controlsWindow.Hide();
  }
  void SetViewMode(bool value){
-  if(viewMode==value)return;CloseLibrary();viewMode=value;pageFrame.Margin=value?new Thickness(0):new Thickness(8,0,8,0);pageFrame.BorderThickness=new Thickness(value?0:1);pageFrame.CornerRadius=new CornerRadius(value?0:16);pageHost.Clip=new RectangleGeometry(new Rect(0,0,Math.Max(0,pageHost.ActualWidth),Math.Max(0,pageHost.ActualHeight)),value?0:15,value?0:15);
-  if(value){EnsureFloatingControls();layout.Children.Remove(titlebar);layout.Children.Remove(bar);floatingControls.Children.Add(titlebar);floatingControls.Children.Add(bar);windowFrame.BorderThickness=new Thickness(0);layout.Children.OfType<DockPanel>().Where(x=>x!=titlebar).ToList().ForEach(x=>x.Visibility=Visibility.Collapsed);}
-  else{if(controlsWindow!=null)controlsWindow.Hide();floatingControls.Children.Remove(titlebar);floatingControls.Children.Remove(bar);layout.Children.Add(titlebar);layout.Children.Add(bar);windowFrame.BorderThickness=new Thickness(1);layout.Children.OfType<DockPanel>().Where(x=>x!=titlebar).ToList().ForEach(x=>x.Visibility=Visibility.Visible);}
+  if(!value&&UseExternalChrome)value=true;
+  if(viewMode==value)return;if(addressPopup!=null)addressPopup.IsOpen=false;CloseLibrary();viewMode=value;pageFrame.Margin=value?new Thickness(0):new Thickness(8,0,8,0);pageFrame.BorderThickness=new Thickness(value?0:1);pageFrame.CornerRadius=new CornerRadius(value?0:16);pageHost.Clip=new RectangleGeometry(new Rect(0,0,Math.Max(0,pageHost.ActualWidth),Math.Max(0,pageHost.ActualHeight)),value?0:15,value?0:15);
+  titlebar.Visibility=bar.Visibility=value?Visibility.Collapsed:Visibility.Visible;
+  if(value){EnsureFloatingControls();windowFrame.BorderThickness=new Thickness(0);layout.Children.OfType<DockPanel>().Where(x=>x!=titlebar).ToList().ForEach(x=>x.Visibility=Visibility.Collapsed);SyncFloatingControls();}
+  else{if(controlsWindow!=null)controlsWindow.Hide();if(compactMenuButton!=null&&compactMenuButton.ContextMenu!=null)compactMenuButton.ContextMenu.IsOpen=false;windowFrame.BorderThickness=new Thickness(1);layout.Children.OfType<DockPanel>().Where(x=>x!=titlebar).ToList().ForEach(x=>x.Visibility=Visibility.Visible);}
+  UpdateLayoutSize();
  }
+ [StructLayout(LayoutKind.Sequential)]struct BrowserMonitorRect{public int Left,Top,Right,Bottom;}
+ [StructLayout(LayoutKind.Sequential)]struct BrowserMonitorInfo{public int Size;public BrowserMonitorRect Monitor,Work;public uint Flags;}
+ [DllImport("user32.dll")]static extern IntPtr MonitorFromWindow(IntPtr hwnd,uint flags);
+ [DllImport("user32.dll",CharSet=CharSet.Auto)]static extern bool GetMonitorInfo(IntPtr monitor,ref BrowserMonitorInfo info);
  [StructLayout(LayoutKind.Sequential)]struct CursorPoint{public int X,Y;}
  [DllImport("user32.dll")]static extern bool GetCursorPos(out CursorPoint point);
 }
