@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="270" viewBox="0 0 1200 270" role="img" aria-labelledby="title desc">
+  <title id="title">Companion</title>
+  <desc id="desc">Серебристый логотип Companion на графитовом фоне. Всё нужное под рукой.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#20252d"/><stop offset="1" stop-color="#0e1115"/></linearGradient>
+    <linearGradient id="silver" x2=".9" y2="1"><stop stop-color="#f3f5f8"/><stop offset=".5" stop-color="#c7cdd4"/><stop offset="1" stop-color="#858f9d"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#c7cdd4" stop-opacity=".1"/><stop offset="1" stop-color="#c7cdd4" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect x="1" y="1" width="1198" height="268" rx="26" fill="url(#bg)" stroke="#343c47" stroke-width="2"/>
+  <ellipse cx="150" cy="135" rx="205" ry="130" fill="url(#glow)"/>
+  <g fill="none" stroke="#c7cdd4" opacity=".07"><circle cx="1090" cy="130" r="110"/><circle cx="1090" cy="130" r="160"/><circle cx="1090" cy="130" r="210"/></g>
+  <g fill="none" stroke="url(#silver)" stroke-linecap="round"><circle cx="146" cy="135" r="46" stroke-width="7"/><path d="M96 185 196 85" stroke-width="7"/></g>
+  <text x="244" y="140" fill="url(#silver)" font-family="Segoe UI,Arial,sans-serif" font-size="64" font-weight="700" letter-spacing="6">COMPANION</text>
+  <text x="248" y="182" fill="#a9b0bc" font-family="Segoe UI,Arial,sans-serif" font-size="23" letter-spacing="1">Всё нужное под рукой</text>
+  <path d="M246 211H340" stroke="#c7cdd4" stroke-opacity=".5" stroke-width="2"/>
+</svg>
