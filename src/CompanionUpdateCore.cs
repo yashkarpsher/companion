@@ -14,6 +14,28 @@ public class CompanionUpdateJob {
  public int Protocol{get;set;}public int ParentPid{get;set;}public string TargetDirectory{get;set;}public string StageDirectory{get;set;}public string Version{get;set;}public Dictionary<string,string> Files{get;set;}
 }
 public static class CompanionUpdateCore {
+ public static int CleanupOldBackups(string directory,Version runningVersion){
+  string root=DirectoryPath(directory);if(!Directory.Exists(root)||!File.Exists(Path.Combine(root,MainExe))||(File.GetAttributes(root)&FileAttributes.ReparsePoint)!=0)return 0;
+  var allowed=new HashSet<string>(RequiredFiles.Concat(OptionalFiles),StringComparer.OrdinalIgnoreCase);var candidates=new List<DirectoryInfo>();
+  foreach(string path in Directory.GetDirectories(root,"update-backup-*",SearchOption.TopDirectoryOnly)){
+   try{
+    var dir=new DirectoryInfo(path);if(dir.Parent==null||!DirectoryPath(dir.Parent.FullName).Equals(root,StringComparison.OrdinalIgnoreCase)||!Regex.IsMatch(dir.Name,@"^update-backup-[a-fA-F0-9]{32}$")||(dir.Attributes&FileAttributes.ReparsePoint)!=0||dir.GetDirectories().Length!=0)continue;
+    var files=dir.GetFiles();if(files.Any(f=>!allowed.Contains(f.Name)||(f.Attributes&FileAttributes.ReparsePoint)!=0)||!RequiredFiles.All(n=>files.Any(f=>f.Name.Equals(n,StringComparison.OrdinalIgnoreCase))))continue;
+    var version=AssemblyName.GetAssemblyName(Path.Combine(dir.FullName,MainExe)).Version;
+    // Do not prune recovery copies from a newer version after a downgrade.
+    if(ParseVersion(version.ToString())>ParseVersion(runningVersion.ToString()))return 0;
+    candidates.Add(dir);
+   }catch(IOException){}catch(UnauthorizedAccessException){}catch(BadImageFormatException){}
+  }
+  int removed=0;foreach(var dir in candidates.OrderByDescending(d=>d.CreationTimeUtc).ThenByDescending(d=>d.Name,StringComparer.Ordinal).Skip(1)){
+   try{
+    // No recursion: only updater-owned files in a verified direct child folder.
+    var files=dir.GetFiles();if((dir.Attributes&FileAttributes.ReparsePoint)!=0||dir.GetDirectories().Length!=0||files.Any(f=>!allowed.Contains(f.Name)||(f.Attributes&FileAttributes.ReparsePoint)!=0))continue;
+    foreach(var file in files.OrderBy(f=>f.Name==MainExe?1:0))File.Delete(file.FullName);
+    Directory.Delete(dir.FullName,false);removed++;
+   }catch(IOException){}catch(UnauthorizedAccessException){}
+  }return removed;
+ }
  public const string Repository="yashkarpsher/companion";
  public const string MainExe="Majestic Companion.exe",UpdaterExe="Companion Updater.exe";
  public const long MaxDownload=150L*1024*1024;
