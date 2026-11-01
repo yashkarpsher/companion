@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -71,11 +71,12 @@ public partial class Companion {
    var body=new Grid{Margin=new Thickness(18)};body.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});body.RowDefinitions.Add(new RowDefinition());body.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});body.Children.Add(Text("Быстрая заметка",20));
    quickNoteText=Input("Запиши то, что важно");quickNoteText.MaxLength=10000;quickNoteText.AcceptsReturn=true;quickNoteText.TextWrapping=TextWrapping.Wrap;quickNoteText.VerticalScrollBarVisibility=ScrollBarVisibility.Auto;Grid.SetRow(quickNoteText,1);body.Children.Add(quickNoteText);
    var actions=Row(Btn("Сохранить",SaveQuickNote,true),Btn("Закрыть",CloseQuickNote));Grid.SetRow(actions,2);body.Children.Add(actions);var border=new Border{CornerRadius=new CornerRadius(16),BorderThickness=new Thickness(1),Child=body};Resource(border,Border.BackgroundProperty,"DockBg");Resource(border,Border.BorderBrushProperty,"Line");window.Content=border;
+   window.Closing+=(s,e)=>{if(!exiting&&!widgetShutdown){e.Cancel=true;CloseQuickNote();}};window.Closed+=(s,e)=>{quickNoteWindow=null;quickNoteText=null;};
    window.PreviewKeyDown+=(s,e)=>{if(e.Key==Key.Escape){e.Handled=true;CloseQuickNote();}else if(e.Key==Key.Enter&&(Keyboard.Modifiers&ModifierKeys.Control)!=0){e.Handled=true;SaveQuickNote();}};CompanionWindowDrag.Attach(window,()=>false);
   }
   var area=CurrentWorkArea();quickNoteWindow.Left=area.Left+(area.Width-quickNoteWindow.Width)/2;quickNoteWindow.Top=area.Top+(area.Height-quickNoteWindow.Height)/2;quickNoteWindow.Show();quickNoteWindow.Activate();quickNoteText.Focus();
  }
- void SaveQuickNote(){var body=quickNoteText.Text.Trim();if(body.Length==0)return;var first=body.Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Заметка";data.Notes.Add(new Memo{Id=Guid.NewGuid().ToString(),Title=first.Length>60?first.Substring(0,60)+"…":first,Body=body,Updated=DateTime.Now});Save();RenderNotes();quickNoteText.Clear();CloseQuickNote();}
+ void SaveQuickNote(){if(data.Notes.Count>=10000){Say("Можно сохранить до 10000 заметок. Удали ненужные.");return;}var body=quickNoteText.Text.Trim();if(body.Length==0)return;var first=body.Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Заметка";var added=new Memo{Id=Guid.NewGuid().ToString(),Title=first.Length>60?first.Substring(0,60)+"…":first,Body=body,Updated=DateTime.Now};data.Notes.Add(added);if(!TrySave()){data.Notes.Remove(added);return;}RenderNotes();quickNoteText.Clear();CloseQuickNote();}
  void CloseQuickNote(){if(quickNoteWindow!=null)quickNoteWindow.Hide();if(quickNoteReturnToGame){quickNoteReturnToGame=false;Safe(()=>SetGameInput(true));}}
  void RegisterQuickKey(){quickBinding=QuickBinding;if(!RegisterHotKey(source.Handle,19,0x4000|QuickBinding.Modifiers,(uint)QuickBinding.VirtualKey))Say("Клавиши быстрой заметки заняты. Выбери другое сочетание в настройках.");}
  void ChangeQuickKey(string text){var next=CompanionHotkey.Parse(text);if(next.ToString()==ShowBinding.ToString()||next.ToString()==InputBinding.ToString())throw new ArgumentException("Для заметки нужно отдельное сочетание.");var old=QuickBinding;UnregisterHotKey(source.Handle,19);if(!RegisterHotKey(source.Handle,19,0x4000|next.Modifiers,(uint)next.VirtualKey)){RegisterHotKey(source.Handle,19,0x4000|old.Modifiers,(uint)old.VirtualKey);throw new ArgumentException("Сочетание занято. Прежние клавиши сохранены.");}quickBinding=next;data.QuickNoteHotkey=next.ToString();Save();Say("Быстрая заметка: "+next);}

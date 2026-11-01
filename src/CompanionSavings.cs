@@ -27,12 +27,12 @@ public partial class Companion {
  void ClearSavingsEditor(){editingSavingsId=null;if(goalName==null)return;goalName.Text="";current.Text="0";target.Text="";savingsSave.Content="Добавить цель";savingsCancel.Visibility=Visibility.Collapsed;}
  void SaveSavingsGoal(){
   MigrateSavings(data);string title=goalName.Text.Trim();if(title.Length==0||title.Length>120)throw new Exception("Добавь название цели до 120 символов.");double saved=Number(current,false),total=Number(target,true);
-  var goal=data.Goals.FirstOrDefault(g=>g.Id==editingSavingsId);if(goal==null){if(data.Goals.Count>=500)throw new Exception("Можно добавить до 500 целей.");goal=new SavingsGoal{Id=Guid.NewGuid().ToString("N")};data.Goals.Add(goal);}
-  goal.Title=title;goal.Current=saved;goal.Target=total;Save();ClearSavingsEditor();RenderSavingsGoals();Say(saved>=total?"Цель достигнута!":"Цель сохранена.");
+  var goal=data.Goals.FirstOrDefault(g=>g.Id==editingSavingsId);bool added=goal==null;if(added){if(data.Goals.Count>=500)throw new Exception("Можно добавить до 500 целей.");goal=new SavingsGoal{Id=Guid.NewGuid().ToString("N")};data.Goals.Add(goal);}
+  string oldTitle=goal.Title;double oldCurrent=goal.Current,oldTarget=goal.Target;goal.Title=title;goal.Current=saved;goal.Target=total;if(!TrySave()){if(added)data.Goals.Remove(goal);else{goal.Title=oldTitle;goal.Current=oldCurrent;goal.Target=oldTarget;}return;}ClearSavingsEditor();RenderSavingsGoals();Say(saved>=total?"Цель достигнута!":"Цель сохранена.");
  }
  void AddSavings(string id,double value){
   var goal=data.Goals.FirstOrDefault(g=>g.Id==id);if(goal==null)throw new Exception("Цель больше не существует.");if(Double.IsNaN(value)||Double.IsInfinity(value)||value<=0||goal.Current+value>1e12)throw new Exception("Введи положительную сумму. Максимальный баланс: 1 триллион.");
-  goal.Current+=value;if(editingSavingsId==id)current.Text=goal.Current.ToString(CultureInfo.InvariantCulture);Save();RenderSavingsGoals();Say(goal.Current>=goal.Target?"Цель достигнута!":"Накопления пополнены.");
+  double oldCurrent=goal.Current;goal.Current+=value;if(!TrySave()){goal.Current=oldCurrent;return;}if(editingSavingsId==id)current.Text=goal.Current.ToString(CultureInfo.InvariantCulture);RenderSavingsGoals();Say(goal.Current>=goal.Target?"Цель достигнута!":"Накопления пополнены.");
  }
  void RenderSavingsGoals(){
   if(savingsList==null)return;MigrateSavings(data);savingsList.Children.Clear();if(data.Goals.Count==0)savingsList.Children.Add(Text("Добавь первую цель ниже.",13,"Muted"));

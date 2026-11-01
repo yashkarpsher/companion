@@ -64,7 +64,7 @@ public partial class CompanionBrowserWindow : Window {
   var brand=new StackPanel{Orientation=Orientation.Horizontal,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(2,0,12,0)};
   var logo=new Ellipse{Width=23,Height=23,StrokeThickness=3,Margin=new Thickness(2,0,10,0)};logo.SetResourceReference(Shape.StrokeProperty,"Accent");brand.Children.Add(logo);brandText=Text("COMPANION",14,"Text");brandText.FontWeight=FontWeights.Bold;brand.Children.Add(brandText);DockPanel.SetDock(brand,Dock.Left);titlebar.Children.Add(brand);
   var actions=new StackPanel{Orientation=Orientation.Horizontal};DockPanel.SetDock(actions,Dock.Right);
-  mute=IconButton("sound",()=>{muted=!muted;UpdateVolume();},"Выключить / включить звук");actions.Children.Add(mute);
+  mute=IconButton("sound",ToggleMute,"Выключить / включить звук");actions.Children.Add(mute);
   volumeSlider=new Slider{Minimum=0,Maximum=100,Value=CompanionBrowserAudio.Normalize(initialVolume),TickFrequency=1,IsSnapToTickEnabled=true,SmallChange=5,LargeChange=10,Width=82,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(6,0,3,0),IsMoveToPointEnabled=true};volumeSlider.SetResourceReference(FrameworkElement.StyleProperty,"BrowserVolumeSlider");System.Windows.Automation.AutomationProperties.SetName(volumeSlider,"Громкость браузера, процентов");actions.Children.Add(volumeSlider);
   volumeLabel=Text("",10,"Muted");volumeLabel.Width=34;volumeLabel.Margin=new Thickness(2,0,8,0);actions.Children.Add(volumeLabel);
   pin=IconButton("pin",()=>{Topmost=!Topmost;UpdatePin();},"Закрепить поверх окон");actions.Children.Add(pin);
@@ -94,6 +94,7 @@ public partial class CompanionBrowserWindow : Window {
  }
  void DragHeader(object sender,MouseButtonEventArgs e){if(e.Handled||e.ChangedButton!=MouseButton.Left)return;DependencyObject node=e.OriginalSource as DependencyObject;while(node!=null&&node!=sender){if(node is ButtonBase||node is TextBox||node is Slider||node is ScrollBar||node is Thumb)return;node=node is Visual?VisualTreeHelper.GetParent(node):LogicalTreeHelper.GetParent(node);}if(e.ClickCount==2)ToggleMaximize();else try{DragMove();}catch(InvalidOperationException){} }
  void ToggleMaximize(){WindowState=WindowState==WindowState.Maximized?WindowState.Normal:WindowState.Maximized;}
+ void ToggleMute(){bool enable=muted||Volume==0;if(enable&&Volume==0)Volume=60;muted=!enable;UpdateVolume();}
  void UpdatePin(){pin.Opacity=Topmost?1:.5;pin.ToolTip=BrowserHint(Topmost?"Открепить окно":"Поверх остальных окон");if(status!=null&&(current==null||!current.Loading))status.Text=Topmost?"Поверх игры":"Браузер";}
  void HandleKeys(object sender,KeyEventArgs e){
   bool ctrl=(Keyboard.Modifiers&ModifierKeys.Control)!=0,shift=(Keyboard.Modifiers&ModifierKeys.Shift)!=0;

@@ -19,6 +19,7 @@ public sealed class CompanionBrowserLibraryData {
 public sealed class CompanionBrowserLibrary {
  public const int HistoryLimit=200,BookmarkLimit=500;
  readonly string file;
+ string savedState;
  readonly JavaScriptSerializer json=new JavaScriptSerializer{MaxJsonLength=8388608};
  public CompanionBrowserLibraryData Data {get;private set;}
  public string Warning {get;private set;}
@@ -26,6 +27,7 @@ public sealed class CompanionBrowserLibrary {
   file=Path.Combine(folder,"companion-library.json");Data=Read(file);
   if(Data==null){Data=Read(file+".bak");if(Data!=null)Warning="История и закладки восстановлены из резервной копии.";else {Data=new CompanionBrowserLibraryData();if(File.Exists(file))Warning="Не удалось прочитать историю и закладки. Исходный файл не изменён.";}}
   Data.History=Clean(Data.History,HistoryLimit,true);Data.Bookmarks=Clean(Data.Bookmarks,BookmarkLimit,false);
+  savedState=json.Serialize(Data);
  }
  CompanionBrowserLibraryData Read(string name){try{if(!File.Exists(name)||new FileInfo(name).Length>8388608)return null;return json.Deserialize<CompanionBrowserLibraryData>(File.ReadAllText(name,Encoding.UTF8));}catch{return null;}}
  public static bool TryUrl(string value,out string normalized){
@@ -60,11 +62,13 @@ public sealed class CompanionBrowserLibrary {
  public void EngineHistoryCleared(){if(!Data.EngineHistoryClearPending)return;Data.EngineHistoryClearPending=false;Save(false);}
  public IEnumerable<CompanionBrowserEntry> Find(bool history,string query){string text=(query??"").Trim();return(history?Data.History:Data.Bookmarks).Where(x=>text.Length==0||x.Title.IndexOf(text,StringComparison.OrdinalIgnoreCase)>=0||x.Url.IndexOf(text,StringComparison.OrdinalIgnoreCase)>=0).ToList();}
  void Save(bool scrubBackup){
-  string folder=Path.GetDirectoryName(file);Directory.CreateDirectory(folder);string temp=file+"."+Guid.NewGuid().ToString("N")+".tmp";string text=json.Serialize(Data);
-  try{File.WriteAllText(temp,text,new UTF8Encoding(false));RetryIo(()=>{if(File.Exists(file))File.Replace(temp,file,file+".bak",true);else File.Move(temp,file);});
+  string temp=file+"."+Guid.NewGuid().ToString("N")+".tmp";
+  try{Directory.CreateDirectory(Path.GetDirectoryName(file));string text=json.Serialize(Data);File.WriteAllText(temp,text,new UTF8Encoding(false));RetryIo(()=>{if(File.Exists(file))File.Replace(temp,file,file+".bak",true);else File.Move(temp,file);});
+   savedState=text;
    // Clearing history also clears it from the recovery copy.
    if(scrubBackup)RetryIo(()=>File.WriteAllText(file+".bak",text,new UTF8Encoding(false)));
-  }finally{if(File.Exists(temp))File.Delete(temp);}
+  }catch{Data=json.Deserialize<CompanionBrowserLibraryData>(savedState);throw;}
+  finally{try{if(File.Exists(temp))File.Delete(temp);}catch(IOException){}catch(UnauthorizedAccessException){}}
  }
  static void RetryIo(Action action){for(int attempt=0;;attempt++)try{action();return;}catch(IOException){if(attempt>=2)throw;System.Threading.Thread.Sleep(attempt==0?25:75);}}
 }
