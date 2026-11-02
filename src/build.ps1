@@ -1,5 +1,16 @@
-﻿param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
+param([string]$OutputPath = (Join-Path $PSScriptRoot 'Majestic Companion.exe'))
 $ErrorActionPreference = 'Stop'
+$neonBackground = Join-Path $PSScriptRoot 'artwork\neon-city.png'
+if (!(Test-Path -LiteralPath $neonBackground)) {
+ $neonParts = @(Get-ChildItem -LiteralPath (Split-Path -Parent $neonBackground) -Filter 'neon-city.png.part*' -File | Sort-Object Name)
+ if ($neonParts.Count -eq 0) { throw 'Missing Companion wallpaper.' }
+ $neonStream = [IO.File]::Create($neonBackground)
+ try { foreach ($neonPart in $neonParts) { $partInput = [IO.File]::OpenRead($neonPart.FullName); try { $partInput.CopyTo($neonStream) } finally { $partInput.Dispose() } } } finally { $neonStream.Dispose() }
+}
+if (Test-Path -LiteralPath ($neonBackground + '.sha256')) {
+ $neonExpected = ([IO.File]::ReadAllText($neonBackground + '.sha256')).Trim().Split(' ')[0]
+ if ((Get-FileHash -LiteralPath $neonBackground -Algorithm SHA256).Hash -ne $neonExpected) { throw 'Companion wallpaper checksum mismatch.' }
+}
 $runnerSource = Join-Path $PSScriptRoot 'Games\SubwaySaintPetersburg'
 if (Test-Path -LiteralPath $runnerSource) {
  Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -80,6 +91,9 @@ $buildArguments += (Join-Path $PSScriptRoot 'CompanionUpdateCore.cs')
 $buildArguments += @('/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionCardModels.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionCardGames.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionWallpaperPlacement.cs')
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionNeon.cs')
+$buildArguments += '/resource:' + (Join-Path $PSScriptRoot 'artwork\neon-city.png') + ',CompanionNeonWallpaper'
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionAssembly.cs')
 $buildArguments += ('/resource:' + (Join-Path $PSScriptRoot 'CompanionTheme.xaml') + ',CompanionTheme')
 $buildArguments += ('/resource:' + (Join-Path $PSScriptRoot 'CompanionReadme.txt') + ',CompanionReadme')

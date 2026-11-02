@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
@@ -9,7 +9,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 public partial class Companion {
- UniformGrid sectionTiles;
+ UniformGrid sectionTiles;WrapPanel overviewBadges,overviewActions;
  readonly List<Button> sectionButtons=new List<Button>();
  readonly List<Ellipse> sectionIndicators=new List<Ellipse>();
  Path DashboardIcon(string name,double size=26){
@@ -34,7 +34,7 @@ public partial class Companion {
  void BuildDashboard(){
   using(var stream=Assembly.GetExecutingAssembly().GetManifestResourceStream("CompanionTheme"))Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(stream));
   Width=Math.Min(1180,SystemParameters.WorkArea.Width-40);Height=Math.Min(850,SystemParameters.WorkArea.Height-40);normalWidth=Width;normalHeight=Height;
-  frame=new Border{CornerRadius=new CornerRadius(18),BorderThickness=new Thickness(1.5),ClipToBounds=true};Resource(frame,Border.BackgroundProperty,"Bg");Resource(frame,Border.BorderBrushProperty,"Line");Content=frame;frame.Child=root;root.Children.Add(wallpaper);
+  frame=new Border{CornerRadius=new CornerRadius(18),BorderThickness=new Thickness(1.5),ClipToBounds=true};Resource(frame,Border.BackgroundProperty,"Bg");Resource(frame,Border.BorderBrushProperty,"FrameLine");Content=frame;frame.Child=root;root.Children.Add(wallpaper);root.SizeChanged+=(s,e)=>UpdateNeonClip();
   normalLayout=new Grid{Margin=new Thickness(26,16,26,14)};root.Children.Add(normalLayout);for(int i=0;i<4;i++)normalLayout.RowDefinitions.Add(new RowDefinition{Height=i==2?new GridLength(1,GridUnitType.Star):GridLength.Auto});
   var header=new Grid{MinHeight=48};header.ColumnDefinitions.Add(new ColumnDefinition());header.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
   var design=Btn("",ShowDesign);design.ToolTip="Дизайн";System.Windows.Automation.AutomationProperties.SetName(design,"Дизайн");
@@ -46,7 +46,7 @@ public partial class Companion {
   var logo=Row();var orbit=new Path{Data=Geometry.Parse("M 4,24 L 27,1 M 24,5 A 12,12 0 1 1 5,24 A 12,12 0 0 1 24,5"),Width=33,Height=33,Stretch=Stretch.Uniform,StrokeThickness=2.3,Margin=new Thickness(0,0,12,0),VerticalAlignment=VerticalAlignment.Center};Resource(orbit,Shape.StrokeProperty,"Accent");logo.Children.Add(orbit);brand=Text("COMPANION",25);brand.Margin=new Thickness(0);brand.VerticalAlignment=VerticalAlignment.Center;logo.Children.Add(brand);header.Children.Add(new Viewbox{Child=logo,Stretch=Stretch.Uniform,StretchDirection=StretchDirection.DownOnly,HorizontalAlignment=HorizontalAlignment.Left,VerticalAlignment=VerticalAlignment.Center,MaxHeight=46,Margin=new Thickness(0,0,12,0)});
   var headerLine=new Border{Child=header,BorderThickness=new Thickness(0,0,0,1),Padding=new Thickness(0,0,0,13),Margin=new Thickness(0,0,0,15)};Resource(headerLine,Border.BorderBrushProperty,"Line");normalLayout.Children.Add(headerLine);
   hero=Stack();hero.Children.Add(Text("ПАНЕЛЬ ИГРОКА",12,"Muted"));
-  var badges=new WrapPanel{Margin=new Thickness(0,0,0,3)};dashboardTasks=Text("",14);dashboardIncome=Text("",14);int index=0;foreach(var text in new[]{dashboardTasks,dashboardIncome}){text.Margin=new Thickness(9,0,0,0);text.VerticalAlignment=VerticalAlignment.Center;var pill=new Border{CornerRadius=new CornerRadius(12),Padding=new Thickness(14,12,14,12),Margin=new Thickness(0,0,12,14),BorderThickness=new Thickness(1),Child=Row(DashboardIcon(index++==0?"check":"coins",18),text)};Resource(pill,Border.BackgroundProperty,"Field");Resource(pill,Border.BorderBrushProperty,"Line");badges.Children.Add(pill);}hero.Children.Add(badges);summary=Text("");Grid.SetRow(hero,1);normalLayout.Children.Add(hero);
+  var badges=new WrapPanel{Margin=new Thickness(0,0,0,3)};overviewBadges=badges;dashboardTasks=Text("",14);dashboardIncome=Text("",14);int index=0;foreach(var text in new[]{dashboardTasks,dashboardIncome}){text.Margin=new Thickness(9,0,0,0);text.VerticalAlignment=VerticalAlignment.Center;var pill=new Border{CornerRadius=new CornerRadius(12),Padding=new Thickness(14,12,14,12),Margin=new Thickness(0,0,12,14),BorderThickness=new Thickness(1),Child=Row(DashboardIcon(index++==0?"check":"coins",18),text)};Resource(pill,Border.BackgroundProperty,"Field");Resource(pill,Border.BorderBrushProperty,"Line");badges.Children.Add(pill);}hero.Children.Add(badges);summary=Text("");Grid.SetRow(hero,1);normalLayout.Children.Add(hero);
   tabs=new TabControl{Background=Brushes.Transparent,BorderThickness=new Thickness(0),Padding=new Thickness(0)};Resource(tabs,Control.ForegroundProperty,"Text");tabs.Template=(ControlTemplate)XamlReader.Parse(@"<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='TabControl'><ContentPresenter x:Name='PART_SelectedContentHost' Content='{TemplateBinding SelectedContent}' ContentTemplate='{TemplateBinding SelectedContentTemplate}' ContentTemplateSelector='{TemplateBinding SelectedContentTemplateSelector}'/></ControlTemplate>");Grid.SetRow(tabs,2);normalLayout.Children.Add(tabs);
   TimerTab();TasksTab();NotesTab();FinanceTab();CalculatorTab();BrowserTab();DesignTab();BuildSectionTiles();tabs.SelectedIndex=0;
   tabs.SelectionChanged+=(s,e)=>{if(e.Source!=tabs)return;UpdateSectionTiles();if(!designing)hero.Visibility=Visibility.Visible;var item=tabs.SelectedItem as TabItem;var body=item==null?null:item.Content as UIElement;if(body!=null){body.Opacity=.6;Animate(body,1,180);}};
@@ -65,7 +65,20 @@ public partial class Companion {
   ApplySectionOrder();sectionTiles.SizeChanged+=(s,e)=>UpdateDashboardLayout();
  }
  void UpdateSectionTiles(){for(int i=0;i<sectionButtons.Count;i++){bool active=tabs.SelectedIndex==i;Resource(sectionButtons[i],Control.BackgroundProperty,active?"TileSelected":"TileFill");bool target=sectionReorderDragging&&sectionButtons[i]==sectionReorderTarget;Resource(sectionButtons[i],Control.BorderBrushProperty,active||target?"Accent":"Line");sectionButtons[i].BorderThickness=new Thickness(active||target?2:1);sectionIndicators[i].Visibility=active?Visibility.Visible:Visibility.Collapsed;}UpdateWorkspaceNav();}
- void UpdateDashboardLayout(){if(sectionTiles==null)return;double width=workspaceInstalled?Math.Max(1,workspaceContent.ActualWidth-20):(normalLayout.ActualWidth>0?normalLayout.ActualWidth:Width-56);int columns=width>=590?3:width>=315?2:1;if(sectionTiles.Columns!=columns)sectionTiles.Columns=columns;if(arcadeTiles!=null)arcadeTiles.Columns=width>=440?2:1;}
- void DashboardColors(){Color panel=((SolidColorBrush)Resources["Panel"]).Color,accent=((SolidColorBrush)Resources["Accent"]).Color;Color top=Mix(panel,Colors.White,.025);top.A=panel.A;Color selected=Mix(panel,accent,.20);selected.A=panel.A;Resources["TileFill"]=new LinearGradientBrush(top,panel,new Point(0,0),new Point(1,1));Resources["TileSelected"]=new LinearGradientBrush(selected,panel,new Point(0,0),new Point(1,1));}
+ void UpdateDashboardLayout(){
+  if(sectionTiles==null)return;double total=ActualWidth>0?ActualWidth:Width;
+  double width=workspaceInstalled?(workspaceContent.ActualWidth>30?workspaceContent.ActualWidth-8:total-(total<900?76:208)-32):(normalLayout.ActualWidth>0?normalLayout.ActualWidth:Width-56);
+  if(workspaceInstalled&&workspaceMode=="overview"&&hero.ActualWidth>0)width=Math.Min(width,hero.ActualWidth);
+  bool small=width<500||(ActualHeight>0?ActualHeight:Height)<520;
+  int columns=width>=590?3:2;if(sectionTiles.Columns!=columns)sectionTiles.Columns=columns;
+  sectionTiles.Margin=new Thickness(0,0,small?-6:-12,small?4:12);
+  foreach(var tile in sectionButtons){tile.Height=small?64:128;tile.Padding=new Thickness(small?6:14);tile.Margin=new Thickness(0,0,small?6:12,small?6:12);var body=(StackPanel)((Grid)tile.Content).Children[0];var iconBox=(Border)body.Children[0];iconBox.Width=iconBox.Height=small?22:38;iconBox.Padding=new Thickness(small?3:7);iconBox.Margin=new Thickness(0,0,0,small?4:9);var icon=(FrameworkElement)iconBox.Child;icon.Width=icon.Height=small?16:22;var title=(TextBlock)body.Children[1];title.FontSize=small?12:18;title.TextWrapping=TextWrapping.NoWrap;title.TextTrimming=TextTrimming.CharacterEllipsis;title.Margin=new Thickness(0,0,0,small?0:3);((TextBlock)body.Children[2]).Visibility=small?Visibility.Collapsed:Visibility.Visible;}
+  foreach(var dot in sectionIndicators)dot.Width=dot.Height=small?6:10;
+  if(overviewBadges!=null){overviewBadges.ItemWidth=small?Math.Max(60,Math.Floor(width/2)-1):Double.NaN;overviewBadges.ItemHeight=small?32:Double.NaN;foreach(Border pill in overviewBadges.Children){pill.Padding=new Thickness(small?7:14,small?5:12,small?7:14,small?5:12);pill.Margin=new Thickness(0,0,small?6:12,small?4:14);pill.CornerRadius=new CornerRadius(small?8:12);var row=(StackPanel)pill.Child;var icon=(FrameworkElement)row.Children[0];icon.Width=icon.Height=small?13:18;var text=(TextBlock)row.Children[1];text.FontSize=small?10:14;text.Margin=new Thickness(small?5:9,0,0,0);text.MaxWidth=small?Math.Max(35,width/2-40):Double.PositiveInfinity;text.TextWrapping=TextWrapping.NoWrap;text.TextTrimming=TextTrimming.CharacterEllipsis;text.SetBinding(FrameworkElement.ToolTipProperty,new System.Windows.Data.Binding("Text"){Source=text});}}
+  if(overviewActions!=null){if(small&&!sectionReorderEditing)overviewActions.Children.Remove(sectionOrderReset);else if(!overviewActions.Children.Contains(sectionOrderReset))overviewActions.Children.Insert(1,sectionOrderReset);overviewActions.Margin=new Thickness(0,0,0,small?0:6);overviewActions.ItemWidth=small?Math.Max(70,Math.Floor(width/3)-1):Double.NaN;foreach(Button button in overviewActions.Children){button.FontSize=small?10:11;button.Padding=new Thickness(small?4:12,small?4:8,small?4:12,small?4:8);button.MinHeight=small?27:33;button.Margin=new Thickness(0,0,small?4:6,small?4:6);}sectionOrderToggle.Content=sectionReorderEditing?"✓ Готово":small?"↔ Порядок":"↔ Изменить порядок";sectionOrderToggle.ToolTip="Изменить порядок разделов";sectionOrderReset.Content=small?"Сбросить":"Сбросить порядок";}
+  if(hero!=null&&hero.Children.Count>0&&hero.Children[0] is TextBlock){var label=(TextBlock)hero.Children[0];label.Visibility=small?Visibility.Collapsed:Visibility.Visible;label.FontSize=small?9:12;label.Margin=new Thickness(0,0,0,small?4:8);}
+  if(arcadeTiles!=null)arcadeTiles.Columns=width>=440?2:1;
+ }
+ void DashboardColors(){var fill=Resources["Panel"];Color panel=fill is SolidColorBrush?((SolidColorBrush)fill).Color:((GradientBrush)fill).GradientStops[0].Color,accent=((SolidColorBrush)Resources["Accent"]).Color;Color top=Mix(panel,Colors.White,.025);top.A=panel.A;Color selected=Mix(panel,accent,.20);selected.A=panel.A;Resources["TileFill"]=new LinearGradientBrush(top,panel,new Point(0,0),new Point(1,1));Resources["TileSelected"]=new LinearGradientBrush(selected,panel,new Point(0,0),new Point(1,1));}
 }
 

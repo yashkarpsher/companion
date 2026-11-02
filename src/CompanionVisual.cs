@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -26,7 +26,7 @@ public partial class Companion {
   Resources["Bg"]=Brush("#"+alpha+(cute?"19151F":"111317"));Resources["Panel"]=Brush("#"+panelAlpha+(cute?"2B2233":"1C2027"));Resources["Field"]=Brush("#"+alpha+(cute?"302638":"232830"));Resources["Line"]=Brush(cute?"#885D4668":"#A3464E5A");
   Resources["Text"]=Brush("#F7F8FA");Resources["Muted"]=Brush(cute?"#BFA6D6":"#A9B0BC");Resources["Accent"]=Brush(cute?"#F99CDE":"#C7CDD4");Resources["AccentLine"]=Brush(cute?"#CCF99CDE":"#CCC7CDD4");Resources["AccentText"]=Brush("#15171B");Resources["DockBg"]=Brush("#"+(data.Density>=1?"FF":"F2")+(cute?"2D2234":"20242B"));
   Resources["Selection"]=Brush(cute?"#995E366B":"#995B626D");Resources["ScrollThumb"]=Brush(cute?"#AD8D6BA3":"#AD939BA8");Resources["ScrollTrack"]=Brush(cute?"#424F3C5D":"#424B515C");Resources["RingTrack"]=Brush(cute?"#684A3B59":"#68464B55");Resources["NavBg"]=Brush(cute?"#662B2134":"#6621252D");Resources["SelectedTab"]=Brush(cute?"#9A3A2B46":"#9A383E48");
-  Resources["AccentFill"]=new LinearGradientBrush((Color)ColorConverter.ConvertFromString(cute?"#FFB5E9":"#E1E5EB"),(Color)ColorConverter.ConvertFromString(cute?"#F685D1":"#ADB5C0"),new Point(0,0),new Point(1,1));ApplyCustomPalette();DashboardColors();if(brand!=null)brand.Text="COMPANION";
+  Resources["AccentFill"]=new LinearGradientBrush((Color)ColorConverter.ConvertFromString(cute?"#FFB5E9":"#E1E5EB"),(Color)ColorConverter.ConvertFromString(cute?"#F685D1":"#ADB5C0"),new Point(0,0),new Point(1,1));ApplyCustomPalette();ApplyNeonPalette();DashboardColors();if(brand!=null)brand.Text="COMPANION";
  }
  void Summary(){double net=data.Entries.Where(t=>t.Date.Date==DateTime.Today).Sum(t=>t.Income?t.Amount:-t.Amount);if(dashboardTasks!=null)dashboardTasks.Text="Дела "+data.Tasks.Count(t=>t.Done)+"/"+data.Tasks.Count;UpdateWorkspaceMetrics();if(dashboardIncome!=null)dashboardIncome.Text="За сегодня  "+(net<0?"− ":"")+Cash(Math.Abs(net));}
  void TimerTab(){BuildWorkspaceTimers();}

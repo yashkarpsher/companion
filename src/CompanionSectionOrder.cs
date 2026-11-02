@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -20,7 +20,7 @@ public partial class Companion {
   if(from>=0&&to>=0&&from!=to){order[from]=target;order[to]=source;}return order;
  }
  void BuildSectionOrderControls(){
-  var controls=new WrapPanel{Margin=new Thickness(0,0,0,6)};
+  var controls=new WrapPanel{Margin=new Thickness(0,0,0,6)};overviewActions=controls;
   sectionOrderToggle=Btn("↔ Изменить порядок",()=>SetSectionReorder(!sectionReorderEditing));sectionOrderToggle.FontSize=11;
   sectionOrderReset=Btn("Сбросить порядок",()=>{CancelSectionPointer();data.SectionOrder=NormalizeSectionOrder(null);ApplySectionOrder();Save();});sectionOrderReset.FontSize=11;sectionOrderReset.Visibility=Visibility.Collapsed;
   controls.Children.Add(sectionOrderToggle);controls.Children.Add(sectionOrderReset);var about=Btn("О программе",OpenAbout);about.FontSize=11;controls.Children.Add(about);var creator=Btn("О создателе",OpenCreator);creator.FontSize=11;controls.Children.Add(creator);hero.Children.Add(controls);
@@ -30,7 +30,7 @@ public partial class Companion {
  void SetSectionReorder(bool editing){
   CancelSectionPointer();sectionReorderEditing=editing;sectionOrderToggle.Content=editing?"✓ Готово":"↔ Изменить порядок";
   sectionOrderReset.Visibility=sectionOrderHint.Visibility=editing?Visibility.Visible:Visibility.Collapsed;
-  foreach(var tile in sectionButtons){CompanionWindowDrag.SetReserved(tile,editing);tile.Cursor=editing?Cursors.SizeAll:Cursors.Hand;tile.ToolTip=editing?"Перетащи плитку или используй Alt + стрелки":null;}
+  foreach(var tile in sectionButtons){CompanionWindowDrag.SetReserved(tile,editing);tile.Cursor=editing?Cursors.SizeAll:Cursors.Hand;tile.ToolTip=editing?"Перетащи плитку или используй Alt + стрелки":null;}UpdateDashboardLayout();
  }
  void ApplySectionOrder(){
   if(sectionTiles==null||sectionButtons.Count!=SectionKeys.Length)return;

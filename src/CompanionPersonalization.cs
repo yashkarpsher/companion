@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -40,7 +40,7 @@ public partial class Companion {
  }
  void SetAccent(string value){Color color;if(!TryAccent(value,out color))throw new ArgumentException("Введите HEX-код: #RRGGBB, например #7C8CFF.");data.AccentColor=Hex(color);Theme();Save();SyncPaletteEditor();}
  void SyncPaletteEditor(){
-  if(accentHex==null)return;Color chosen;if(!TryAccent(data.AccentColor,out chosen))TryAccent(data.Theme=="cute"?"#F99CDE":"#C7CDD4",out chosen);
+  if(accentHex==null)return;Color chosen;if(!TryAccent(data.AccentColor,out chosen))TryAccent(data.Theme=="cute"?"#F99CDE":"#BB70FF",out chosen);
   syncingPalette=true;accentHex.Text=Hex(chosen);accentValue.Text=Hex(chosen);accentPreview.Background=new SolidColorBrush(chosen);accentHue.Value=Hue(chosen);syncingPalette=false;
  }
  static double Hue(Color color){double r=color.R/255.0,g=color.G/255.0,b=color.B/255.0,max=Math.Max(r,Math.Max(g,b)),min=Math.Min(r,Math.Min(g,b)),delta=max-min;if(delta==0)return 0;double h=max==r?(g-b)/delta+(g<b?6:0):max==g?(b-r)/delta+2:(r-g)/delta+4;return h*60;}
