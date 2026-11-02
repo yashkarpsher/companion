@@ -15,7 +15,7 @@ Companion помогает не забывать о делах, следить �
 >
 > В полноэкранном режиме окна помощника могут быть не видны.
 
-**[Скачать последнюю версию](https://github.com/yashkarpsher/companion/releases/latest)** · [Инструкция](docs/INSTALL.md) · [Что нового](CHANGELOG.md)
+**[Скачать установщик](https://github.com/yashkarpsher/companion/releases/latest/download/Companion-Setup.exe)** · [Версия в ZIP](https://github.com/yashkarpsher/companion/releases/latest) · [Инструкция](docs/INSTALL.md) · [Что нового](CHANGELOG.md)
 
 ![Главное окно Companion: таймеры, дела и баланс за сегодня](docs/images/companion.jpg)
 
@@ -86,10 +86,15 @@ Companion помогает не забывать о делах, следить �
 
 ## Как установить
 
-1. Открой [последний релиз](https://github.com/yashkarpsher/companion/releases/latest).
-2. В разделе **Assets** скачай архив `Majestic-Companion-ВЕРСИЯ.zip`.
-3. Распакуй архив целиком в отдельную папку.
-4. Запусти **Majestic Companion.exe**.
+1. Скачай [Companion-Setup.exe](https://github.com/yashkarpsher/companion/releases/latest/download/Companion-Setup.exe).
+2. Полностью закрой Companion, если он уже запущен.
+3. Запусти установщик, выбери папку и нажми **«Установить»**.
+
+Установщик сам скачает последнюю стабильную версию с GitHub. По умолчанию папка называется **«Компаньон»**. Можно создать ярлык на рабочем столе; Companion также появится в меню «Пуск» и списке установленных приложений Windows.
+
+Если пользовался версией из ZIP, выбери её старую папку на странице переноса. Записи и настройки скопируются, оригиналы останутся на месте. При установке поверх той же папки перенос не нужен.
+
+Для онлайн-установки нужен интернет. Версия без установки остаётся в [Assets последнего релиза](https://github.com/yashkarpsher/companion/releases/latest): скачай `Majestic-Companion-ВЕРСИЯ.zip`, распакуй целиком и запусти **Majestic Companion.exe**.
 
 Архивы **Source code** для обычного запуска не нужны.
 

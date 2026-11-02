@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'dist/0.17.20/**'
+      - 'dist/installer/**'
       - 'docs/release-notes/v0.17.20.md'
       - '.github/workflows/publish-release.yml'
   workflow_dispatch:
@@ -58,6 +59,23 @@ jobs:
             --title "${VERSION}" \
             --notes-file "docs/release-notes/v${VERSION}.md" \
             --latest
+      - name: Publish online installer
+        shell: bash
+        working-directory: repository/dist/installer
+        run: |
+          set -euo pipefail
+          cat Companion-Setup.exe.part* > Companion-Setup.exe
+          sha256sum --check Companion-Setup.exe.sha256
+          existing_assets="$(gh release view "v${VERSION}" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+          mkdir verify-existing
+          for asset in Companion-Setup.exe Companion-Setup.exe.sha256; do
+            if echo "$existing_assets" | grep -Fxq "$asset"; then
+              gh release download "v${VERSION}" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir verify-existing
+              cmp "$asset" "verify-existing/$asset"
+            else
+              gh release upload "v${VERSION}" "$asset" --repo "$GITHUB_REPOSITORY"
+            fi
+          done
       - name: Refresh release descriptions
         shell: bash
         working-directory: repository
