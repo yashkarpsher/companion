@@ -69,7 +69,7 @@ public partial class Companion : Window {
  Border Card(UIElement child){var b=new Border{Child=child,Padding=new Thickness(17),Margin=new Thickness(0,0,0,14),CornerRadius=new CornerRadius(12),BorderThickness=new Thickness(1)};Resource(b,Border.BackgroundProperty,"Panel");Resource(b,Border.BorderBrushProperty,"Line");MotionCard(b);return b;}
  StackPanel Stack(){return new StackPanel();}
  StackPanel Row(params UIElement[] children){var p=new StackPanel{Orientation=Orientation.Horizontal};foreach(var c in children)p.Children.Add(c);return p;}
- void Say(string message){feedback.Text=message;}
+ void Say(string message){feedback.Text=message;if(miniPanelFeedback!=null){miniPanelFeedback.Text=message;miniPanelFeedback.Visibility=Visibility.Visible;}}
  string Cash(double n){return "$ "+n.ToString("N0",System.Globalization.CultureInfo.GetCultureInfo("ru-RU"));}
  double Number(TextBox b,bool positive){double v;if(!Double.TryParse(b.Text.Replace(" ","").Replace("\u00a0","").Replace(',','.'),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out v)||Double.IsNaN(v)||Double.IsInfinity(v)||v<0||v>1e12||(positive&&v<=0))throw new Exception("Введите корректную положительную сумму (без разделителей).");return v;}
  void Safe(Action action){try{action();}catch(Exception e){Say(e.Message);}}

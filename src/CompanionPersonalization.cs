@@ -72,7 +72,7 @@ public partial class Companion {
  void RequestExit(){SetGameInput(false);Close();}
  void InstallSettingsPage(ScrollViewer scroll){
   var page=new Grid{Visibility=Visibility.Collapsed};page.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});page.RowDefinitions.Add(new RowDefinition());
-  var back=Btn("← Назад в меню",()=>{if(designing)ShowDesign();},true);back.HorizontalAlignment=HorizontalAlignment.Left;back.MinHeight=42;back.FontSize=14;back.Padding=new Thickness(16,9,16,9);back.Margin=new Thickness(0,0,0,14);back.ToolTip="Вернуться в предыдущий раздел";System.Windows.Automation.AutomationProperties.SetName(back,"Назад в меню");
+  var back=Btn("← Назад в меню",()=>{if(compact&&miniPanel!=null)CloseMiniPanel();else if(designing)ShowDesign();},true);back.HorizontalAlignment=HorizontalAlignment.Left;back.MinHeight=42;back.FontSize=14;back.Padding=new Thickness(16,9,16,9);back.Margin=new Thickness(0,0,0,14);back.ToolTip="Вернуться в предыдущий раздел";System.Windows.Automation.AutomationProperties.SetName(back,"Назад в меню");
   page.Children.Add(back);Grid.SetRow(scroll,1);page.Children.Add(scroll);settingsPage=page;Grid.SetRow(page,2);normalLayout.Children.Add(page);
  }
  void ClosingApplication(object sender,CancelEventArgs e){

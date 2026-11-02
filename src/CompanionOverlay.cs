@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -93,12 +93,12 @@ public partial class Companion {
   body.Children.Add(Text("Нажми нужное сочетание в поле, затем сохрани. Помощник должен оставаться запущенным, в том числе в трее. Ярлыки и автозапуск не создаются.",11,"Muted"));
  }
  void TrackExternalWindow(){IntPtr foreground=GetForegroundWindow();if(foreground!=IntPtr.Zero&&!OurWindow(foreground))lastExternalWindow=foreground;}
- bool OurWindow(IntPtr hwnd){return widgets.Any(w=>new WindowInteropHelper(w).Handle==hwnd)||(quickNoteWindow!=null&&new WindowInteropHelper(quickNoteWindow).Handle==hwnd)|| hwnd==new WindowInteropHelper(this).Handle||(browserWindow!=null&&browserWindow.OwnsWindow(hwnd))||(miniDock!=null&&hwnd==new WindowInteropHelper(miniDock).Handle)||(notice!=null&&hwnd==new WindowInteropHelper(notice).Handle);}
+ bool OurWindow(IntPtr hwnd){return (miniPanel!=null&&new WindowInteropHelper(miniPanel).Handle==hwnd)||widgets.Any(w=>new WindowInteropHelper(w).Handle==hwnd)||(quickNoteWindow!=null&&new WindowInteropHelper(quickNoteWindow).Handle==hwnd)|| hwnd==new WindowInteropHelper(this).Handle||(browserWindow!=null&&browserWindow.OwnsWindow(hwnd))||(miniDock!=null&&hwnd==new WindowInteropHelper(miniDock).Handle)||(notice!=null&&hwnd==new WindowInteropHelper(notice).Handle);}
  void ToggleGameInput(){bool returning=gameInputLocked;SetGameInput(!gameInputLocked);if(returning){if(browserWindow!=null&&browserWindow.IsVisible){browserWindow.Activate();}else Reveal();}}
  void SetGameInput(bool locked){
   if(locked&&!inputHotkeyRegistered)throw new InvalidOperationException("Сначала задай свободные клавиши управления мышью в «Дизайне»: текущее сочетание занято.");
   if(gameInputLocked==locked)return;
-  if(mainInputGate==null)mainInputGate=new CompanionInputGate(this);
+  if(locked)CloseMiniPanel();if(mainInputGate==null)mainInputGate=new CompanionInputGate(this);
   try{
    foreach(var widget in widgets)widget.InputLocked=locked;mainInputGate.Locked=locked;if(browserWindow!=null)browserWindow.InputLocked=locked;if(noticeInputGate!=null)noticeInputGate.Locked=locked;
    gameInputLocked=locked;if(locked){CloseCardGames();CloseHelp();SuspendArcade();HideMiniDock(true);if(lastExternalWindow!=IntPtr.Zero&&IsWindow(lastExternalWindow))SetForegroundWindow(lastExternalWindow);}

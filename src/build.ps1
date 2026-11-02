@@ -55,6 +55,7 @@ foreach ($library in @('Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2
 if (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'companion.ico')) { $buildArguments += '/win32icon:' + (Join-Path $PSScriptRoot 'companion.ico') }
 $buildArguments += $references
 $buildArguments += @('/reference:System.Xaml.dll','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.Web.Extensions.dll',(Join-Path $PSScriptRoot 'Companion.cs'))
+$buildArguments += (Join-Path $PSScriptRoot 'CompanionMiniHub.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionV2.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionOrbit.cs')
 $buildArguments += (Join-Path $PSScriptRoot 'CompanionCalculator.cs')

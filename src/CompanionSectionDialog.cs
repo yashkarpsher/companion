@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -32,7 +32,7 @@ public partial class Companion {
   if(sectionDialogSurface==null)return;double width=root.ActualWidth>0?root.ActualWidth:Width,height=root.ActualHeight>0?root.ActualHeight:Height;
   sectionDialogSurface.Width=Math.Max(1,Math.Min(680,width-32));sectionDialogSurface.Height=Math.Max(1,Math.Min(760,height-32));
  }
- void OpenSectionDialog(int section){
+ void OpenSectionDialog(int section){if(compact){OpenMiniSection(section);return;}
   if(workspaceInstalled){OpenWorkspaceSection(section);return;}
   if(section<0||section>=tabs.Items.Count)return;CloseCardGames();CloseHelp();CloseArcade();if(compact)SetCompact(false);if(designing)ShowDesign();if(sectionReorderEditing)SetSectionReorder(false);
   tabs.SelectedIndex=section;tabs.Visibility=Visibility.Visible;sectionDialogTitle.Text=System.Windows.Automation.AutomationProperties.GetName(sectionButtons[section]);
