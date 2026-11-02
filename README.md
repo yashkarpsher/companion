@@ -15,7 +15,7 @@ Companion помогает не забывать о делах, следить �
 >
 > В полноэкранном режиме окна помощника могут быть не видны.
 
-**[Скачать установщик](https://github.com/yashkarpsher/companion/releases/latest/download/Companion-Setup.exe)** · [Версия в ZIP](https://github.com/yashkarpsher/companion/releases/latest) · [Инструкция](docs/INSTALL.md) · [Что нового](CHANGELOG.md)
+**[Скачать установщик](https://github.com/yashkarpsher/companion/releases/latest/download/Companion-Setup.exe)** · [Портативная версия (ZIP)](https://github.com/yashkarpsher/companion/releases/latest) · [Инструкция](docs/INSTALL.md) · [Что нового](CHANGELOG.md)
 
 ![Главное окно Companion: таймеры, дела и баланс за сегодня](docs/images/companion.jpg)
 
@@ -84,6 +84,8 @@ Companion помогает не забывать о делах, следить �
 
 Во время игры можно включить пропуск мыши: окна помощника останутся видны, а клики будут попадать в игру.
 
+**Два варианта на выбор:** установщик или **портативная версия в ZIP**. Портативную версию достаточно распаковать и запустить: установка не нужна, записи и настройки хранятся в папке `data` рядом с программой.
+
 ## Как установить
 
 1. Скачай [Companion-Setup.exe](https://github.com/yashkarpsher/companion/releases/latest/download/Companion-Setup.exe).
@@ -94,7 +96,7 @@ Companion помогает не забывать о делах, следить �
 
 Если пользовался версией из ZIP, выбери её старую папку на странице переноса. Записи и настройки скопируются, оригиналы останутся на месте. При установке поверх той же папки перенос не нужен.
 
-Для онлайн-установки нужен интернет. Версия без установки остаётся в [Assets последнего релиза](https://github.com/yashkarpsher/companion/releases/latest): скачай `Majestic-Companion-ВЕРСИЯ.zip`, распакуй целиком и запусти **Majestic Companion.exe**.
+Для онлайн-установки нужен интернет. Портативная версия без установки доступна в [Assets последнего релиза](https://github.com/yashkarpsher/companion/releases/latest): скачай `Majestic-Companion-ВЕРСИЯ.zip`, распакуй целиком и запусти **Majestic Companion.exe**.
 
 Архивы **Source code** для обычного запуска не нужны.
 
